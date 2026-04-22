@@ -1,0 +1,3 @@
+nest-cli:
+  language: ts
+  sourceRoot: src
