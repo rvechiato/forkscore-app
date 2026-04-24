@@ -1,138 +1,71 @@
-/**
- * Application: Serviço de Autenticação
- * 
- * Esta camada orquestra as regras de domínio.
- * Coordena entre domínio e infraestrutura (repositórios, JWT, etc.)
- */
-
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '@modules/users/infra/entities/user.entity';
-import {
-  ILoginRequest,
-  IAuthResponse,
-  InvalidCredentialsError,
-  UserNotFoundError,
-  WeakPasswordError,
-} from '../domain/auth.types';
+import { ConflictException, UnauthorizedException } from '../../../common/exceptions/domain.exception';
+import { BcryptHasher } from '../hash/bcrypt.hasher';
+import { TokenProvider, TokenPair } from '../token/token.provider';
+import { IUserRepository, USER_REPOSITORY } from '../../users/domain/ports/user.repository';
+import { UserEntity } from '../../users/infra/entities/user.entity';
+import { IdGenerator } from '../../shared/infra/id.generator';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(UserEntity)
-    private usersRepository: Repository<UserEntity>,
-    private jwtService: JwtService,
+    @Inject(USER_REPOSITORY)
+    private readonly userRepository: IUserRepository,
+    private readonly hasher: BcryptHasher,
+    private readonly tokenProvider: TokenProvider,
+    private readonly idGenerator: IdGenerator,
   ) {}
 
-  /**
-   * Efetua login do usuário
-   * @param loginRequest Email e senha
-   * @returns Token JWT e dados do usuário
-   */
-  async login(loginRequest: ILoginRequest): Promise<IAuthResponse> {
-    const { email, password } = loginRequest;
-
-    // Busca usuário no repositório
-    const user = await this.usersRepository.findOne({ where: { email } });
-    if (!user) {
-      throw new UserNotFoundError(email);
-    }
-
-    // Valida senha
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-    if (!isPasswordValid) {
-      throw new InvalidCredentialsError();
-    }
-
-    // Gera JWT
-    const accessToken = this.jwtService.sign({
-      userId: user.id,
-      email: user.email,
-    });
-
-    return {
-      accessToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-      },
-    };
-  }
-
-  /**
-   * Registra novo usuário
-   * @param email Email único
-   * @param password Senha em plain text (será hasheada)
-   * @param name Nome completo
-   * @returns Dados do usuário criado com token
-   */
-  async signup(email: string, password: string, name: string): Promise<IAuthResponse> {
-    // Valida força da senha
-    this.validatePasswordStrength(password);
-
-    // Verifica se email já existe
-    const existingUser = await this.usersRepository.findOne({ where: { email } });
+  async register(email: string, password: string, name: string): Promise<TokenPair & { userId: string }> {
+    // Check if user already exists
+    const existingUser = await this.userRepository.findByEmail(email);
     if (existingUser) {
-      throw new Error('Email já registrado');
+      throw new ConflictException(`Email ${email} already registered`);
     }
 
-    // Hash da senha
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Create new user
+    const userId = this.idGenerator.generate();
+    const passwordHash = await this.hasher.hash(password);
 
-    // Cria novo usuário
-    const newUser = this.usersRepository.create({
-      email,
-      passwordHash: hashedPassword,
-      name,
-    });
+    const user = new UserEntity();
+    user.id = userId;
+    user.email = email;
+    user.passwordHash = passwordHash;
+    user.name = name;
 
-    const savedUser = await this.usersRepository.save(newUser);
+    await this.userRepository.save(user);
 
-    // Gera JWT
-    const accessToken = this.jwtService.sign({
-      userId: savedUser.id,
-      email: savedUser.email,
-    });
-
-    return {
-      accessToken,
-      user: {
-        id: savedUser.id,
-        email: savedUser.email,
-        name: savedUser.name,
-      },
-    };
+    const tokens = this.tokenProvider.generateTokens(userId, email);
+    return { userId, ...tokens };
   }
 
-  /**
-   * Valida força da senha conforme regras de domínio
-   */
-  private validatePasswordStrength(password: string): void {
-    if (password.length < 8) {
-      throw new WeakPasswordError();
+  async login(email: string, password: string): Promise<TokenPair & { userId: string }> {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) {
+      throw new UnauthorizedException('Invalid email or password');
     }
 
-    const hasUppercase = /[A-Z]/.test(password);
-    const hasLowercase = /[a-z]/.test(password);
-    const hasNumber = /[0-9]/.test(password);
-
-    if (!hasUppercase || !hasLowercase || !hasNumber) {
-      throw new WeakPasswordError();
+    const isPasswordValid = await this.hasher.compare(password, user.passwordHash);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid email or password');
     }
+
+    const tokens = this.tokenProvider.generateTokens(user.id, user.email);
+    return { userId: user.id, ...tokens };
   }
 
-  /**
-   * Valida JWT e retorna payload
-   */
-  validateToken(token: string) {
-    try {
-      return this.jwtService.verify(token);
-    } catch (error) {
-      throw new Error('Token inválido ou expirado');
+  async refreshTokens(refreshToken: string): Promise<TokenPair> {
+    const payload = this.tokenProvider.verifyRefreshToken(refreshToken);
+    if (!payload) {
+      throw new UnauthorizedException('Invalid refresh token');
     }
+
+    const user = await this.userRepository.findById(payload.userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    return this.tokenProvider.generateTokens(user.id, user.email);
   }
 }

@@ -1,8 +1,3 @@
-/**
- * Stub: Entity para Usuário
- * (To be implemented)
- */
-
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('users')
@@ -10,23 +5,27 @@ export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column({ type: 'varchar', length: 255, unique: true })
   email: string;
 
-  @Column()
+  @Column({ type: 'text', select: false })
   passwordHash: string;
 
-  @Column()
+  @Column({ type: 'varchar', length: 255 })
   name: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   bio: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   profilePhotoUrl: string;
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+}
 
   @UpdateDateColumn()
   updatedAt: Date;
