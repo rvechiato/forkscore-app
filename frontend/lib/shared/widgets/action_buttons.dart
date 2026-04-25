@@ -2,15 +2,19 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
-class PrimaryActionButton extends StatelessWidget {
-  const PrimaryActionButton({
+class ForkScoreActionButton extends StatelessWidget {
+  const ForkScoreActionButton({
     super.key,
     required this.label,
+    required this.backgroundColor,
     this.onPressed,
+    this.foregroundColor = Colors.white,
   });
 
   final String label;
+  final Color backgroundColor;
   final VoidCallback? onPressed;
+  final Color foregroundColor;
 
   @override
   Widget build(BuildContext context) {
@@ -20,8 +24,8 @@ class PrimaryActionButton extends StatelessWidget {
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           elevation: 2,
-          backgroundColor: AppTheme.terracotta,
-          foregroundColor: Colors.white,
+          backgroundColor: backgroundColor,
+          foregroundColor: foregroundColor,
           shadowColor: Colors.black.withValues(alpha: 0.12),
           minimumSize: const Size.fromHeight(56),
           shape: RoundedRectangleBorder(
@@ -34,34 +38,34 @@ class PrimaryActionButton extends StatelessWidget {
   }
 }
 
-class SecondaryActionButton extends StatelessWidget {
-  const SecondaryActionButton({
-    super.key,
-    required this.label,
-    this.onPressed,
-  });
+class PrimaryActionButton extends StatelessWidget {
+  const PrimaryActionButton({super.key, required this.label, this.onPressed});
 
   final String label;
   final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          elevation: 2,
-          backgroundColor: AppTheme.moss,
-          foregroundColor: Colors.white,
-          shadowColor: Colors.black.withValues(alpha: 0.12),
-          minimumSize: const Size.fromHeight(56),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-        ),
-        child: Text(label),
-      ),
+    return ForkScoreActionButton(
+      label: label,
+      backgroundColor: AppTheme.terracotta,
+      onPressed: onPressed,
+    );
+  }
+}
+
+class SecondaryActionButton extends StatelessWidget {
+  const SecondaryActionButton({super.key, required this.label, this.onPressed});
+
+  final String label;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return ForkScoreActionButton(
+      label: label,
+      backgroundColor: AppTheme.moss,
+      onPressed: onPressed,
     );
   }
 }

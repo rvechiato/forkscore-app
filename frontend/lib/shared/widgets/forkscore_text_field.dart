@@ -4,8 +4,8 @@ class ForkScoreTextField extends StatelessWidget {
   const ForkScoreTextField({
     super.key,
     required this.controller,
-    required this.label,
     required this.hintText,
+    this.label,
     this.prefixIcon,
     this.suffixIcon,
     this.obscureText = false,
@@ -15,7 +15,7 @@ class ForkScoreTextField extends StatelessWidget {
   });
 
   final TextEditingController controller;
-  final String label;
+  final String? label;
   final String hintText;
   final Widget? prefixIcon;
   final Widget? suffixIcon;
@@ -26,16 +26,17 @@ class ForkScoreTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasLabel = label.trim().isNotEmpty;
+    final hasLabel = label != null && label!.trim().isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (hasLabel) ...[
           Text(
-            label,
-            style:
-                Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 14),
+            label!,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontSize: 14),
           ),
           const SizedBox(height: 8),
         ],
