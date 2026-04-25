@@ -5,3 +5,6 @@ class UserAlreadyExistsError(Exception):
 class InvalidCredentialsError(Exception):
     """Raised when authentication credentials are invalid."""
 
+
+class InvalidAccessTokenError(Exception):
+    """Raised when an access token is invalid or expired."""

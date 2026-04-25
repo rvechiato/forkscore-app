@@ -6,7 +6,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from src.modules.auth.infra.database import models  # noqa: F401
+from src.modules.auth.infra.database import models as auth_models  # noqa: F401
+from src.modules.users.infra.database import models as user_models  # noqa: F401
 from src.main import app
 from src.shared.infra.database.base import Base
 from src.shared.infra.database.session import get_db_session

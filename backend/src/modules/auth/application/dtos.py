@@ -1,3 +1,5 @@
+from datetime import date
+
 from pydantic import BaseModel, EmailStr, Field
 
 
@@ -5,6 +7,7 @@ class RegisterUserInput(BaseModel):
     """Input DTO for user registration."""
 
     name: str = Field(min_length=2, max_length=80)
+    birth_date: date
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
 
@@ -28,6 +31,8 @@ class AuthenticatedUserOutput(BaseModel):
 
     id: str
     name: str
+    birth_date: date
+    age: int
     email: EmailStr
 
 

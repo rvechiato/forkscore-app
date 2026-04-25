@@ -15,3 +15,8 @@ class UserRepository(Protocol):
     def find_by_email(self, email: str) -> User | None:
         """Return a user by email if it exists."""
 
+    def find_by_id(self, user_id: str) -> User | None:
+        """Return a user by identifier if it exists."""
+
+    def update(self, user: User) -> User:
+        """Update and return a persisted user."""

@@ -39,7 +39,8 @@ def init_database(settings: Settings) -> None:
     """Create database tables for the current application."""
 
     # Import models before metadata creation so SQLAlchemy can register them.
-    from src.modules.auth.infra.database import models  # noqa: F401
+    from src.modules.auth.infra.database import models as auth_models  # noqa: F401
+    from src.modules.users.infra.database import models as user_models  # noqa: F401
 
     Base.metadata.create_all(bind=get_engine(settings.database_url))
 
@@ -54,4 +55,3 @@ def get_db_session() -> Generator[Session, None, None]:
         yield session
     finally:
         session.close()
-
