@@ -17,6 +17,8 @@ def test_register_user_returns_token_and_user(client) -> None:
     body = response.json()
     assert body["token_type"] == "bearer"
     assert body["user"]["name"] == "Rafa Vecchiato"
+    assert body["user"]["birth_date"] is None
+    assert body["user"]["age"] is None
     assert body["user"]["email"] == "rafa@example.com"
 
     payload = jwt.decode(
@@ -62,6 +64,9 @@ def test_login_returns_token_for_valid_credentials(client) -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["token_type"] == "bearer"
+    assert body["user"]["name"] == "Rafa Vecchiato"
+    assert body["user"]["birth_date"] is None
+    assert body["user"]["age"] is None
     assert body["user"]["email"] == register_payload["email"]
     assert body["access_token"]
 

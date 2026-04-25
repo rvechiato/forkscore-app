@@ -8,8 +8,6 @@ class User:
     """Authenticated user representation."""
 
     id: UUID
-    name: str
     email: str
     password_hash: str
     created_at: datetime
-

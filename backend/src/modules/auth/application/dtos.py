@@ -1,3 +1,6 @@
+from datetime import date
+from typing import Optional
+
 from pydantic import BaseModel, EmailStr, Field
 
 
@@ -28,6 +31,8 @@ class AuthenticatedUserOutput(BaseModel):
 
     id: str
     name: str
+    birth_date: Optional[date] = None
+    age: Optional[int] = None
     email: EmailStr
 
 

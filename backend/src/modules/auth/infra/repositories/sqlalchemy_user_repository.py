@@ -21,7 +21,6 @@ class SqlAlchemyUserRepository(UserRepository):
     def save(self, user: User) -> User:
         model = UserModel(
             id=str(user.id),
-            name=user.name,
             email=user.email,
             password_hash=user.password_hash,
             created_at=user.created_at,
@@ -44,3 +43,28 @@ class SqlAlchemyUserRepository(UserRepository):
             return None
         return model.to_entity()
 
+    def find_by_id(self, user_id: str) -> User | None:
+        statement = select(UserModel).where(UserModel.id == user_id)
+        model = self._session.execute(statement).scalar_one_or_none()
+        if model is None:
+            return None
+        return model.to_entity()
+
+    def update(self, user: User) -> User:
+        model = self._session.get(UserModel, str(user.id))
+        if model is None:
+            raise UserAlreadyExistsError("User not found.")
+
+        model.email = user.email
+        model.password_hash = user.password_hash
+        self._session.add(model)
+        try:
+            self._session.commit()
+        except IntegrityError as exc:
+            self._session.rollback()
+            raise UserAlreadyExistsError(
+                "A user with this email already exists."
+            ) from exc
+
+        self._session.refresh(model)
+        return model.to_entity()
