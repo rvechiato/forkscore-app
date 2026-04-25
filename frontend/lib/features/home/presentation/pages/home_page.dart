@@ -10,54 +10,88 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const ForkScoreLogo(
-                showWordmark: true,
-                compact: true,
-                markWidth: 34,
-                wordmarkSize: 22,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useWideLayout = constraints.maxWidth >= 1000;
+
+        return SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            useWideLayout ? 40 : 24,
+            24,
+            useWideLayout ? 40 : 24,
+            32,
+          ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1180),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const ForkScoreLogo(
+                        showWordmark: true,
+                        compact: true,
+                        markWidth: 34,
+                        wordmarkSize: 22,
+                      ),
+                      const Spacer(),
+                      _AvatarBadge(initials: _initialsFromName(userName)),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Ola, $userName!',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Seu painel inicial para descobrir, avaliar e recomendar.',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: AppTheme.textMuted),
+                  ),
+                  const SizedBox(height: 24),
+                  if (useWideLayout)
+                    const Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(flex: 8, child: _HeroCard()),
+                        SizedBox(width: 20),
+                        Expanded(flex: 4, child: _QuickActionsPanel()),
+                      ],
+                    )
+                  else ...[
+                    const _HeroCard(),
+                    const SizedBox(height: 14),
+                    const _HeroIndicator(),
+                    const SizedBox(height: 18),
+                    Text(
+                      'Acoes Rapidas',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.headlineSmall?.copyWith(fontSize: 20),
+                    ),
+                    const SizedBox(height: 12),
+                    const _QuickActionGrid(),
+                  ],
+                  const SizedBox(height: 24),
+                  Text(
+                    'Explorar Categorias',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.headlineSmall?.copyWith(fontSize: 20),
+                  ),
+                  const SizedBox(height: 12),
+                  const SizedBox(height: 130, child: _CategoryScroller()),
+                ],
               ),
-              const Spacer(),
-              _AvatarBadge(initials: _initialsFromName(userName)),
-            ],
+            ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            'Ola, $userName!',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 18),
-          const _HeroCard(),
-          const SizedBox(height: 14),
-          const _HeroIndicator(),
-          const SizedBox(height: 18),
-          Text(
-            'Acoes Rapidas',
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontSize: 20),
-          ),
-          const SizedBox(height: 12),
-          const _QuickActionGrid(),
-          const SizedBox(height: 18),
-          Text(
-            'Explorar Categorias',
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontSize: 20),
-          ),
-          const SizedBox(height: 12),
-          const SizedBox(height: 130, child: _CategoryScroller()),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -79,7 +113,7 @@ class _HeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final compact = constraints.maxWidth < 320;
+        final compact = constraints.maxWidth < 420;
 
         return Container(
           padding: const EdgeInsets.all(24),
@@ -258,6 +292,35 @@ class _HeroIndicator extends StatelessWidget {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickActionsPanel extends StatelessWidget {
+  const _QuickActionsPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.inputBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Acoes Rapidas',
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontSize: 20),
+          ),
+          const SizedBox(height: 12),
+          const _QuickActionGrid(),
         ],
       ),
     );

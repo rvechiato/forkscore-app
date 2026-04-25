@@ -23,16 +23,14 @@ class _AuthShellPageState extends State<AuthShellPage> {
     return Scaffold(
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final useDeviceFrame = constraints.maxWidth >= 640;
-          final showPreviewNav = useDeviceFrame && constraints.maxHeight >= 860;
+          final useWebLayout = constraints.maxWidth >= 900;
 
           return ColoredBox(
-            color: useDeviceFrame ? AppTheme.previewBackdrop : AppTheme.cream,
+            color: useWebLayout ? AppTheme.previewBackdrop : AppTheme.cream,
             child: Center(
               child: AuthDeviceFrame(
-                useDeviceFrame: useDeviceFrame,
+                useWebLayout: useWebLayout,
                 currentScreen: _screen,
-                showPreviewNav: showPreviewNav,
                 onSelectScreen: (screen) => setState(() => _screen = screen),
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 280),
