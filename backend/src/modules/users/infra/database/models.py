@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 from datetime import date, datetime
+from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import Date, DateTime, ForeignKey, String
@@ -22,7 +23,7 @@ class ProfileModel(Base):
         primary_key=True,
     )
     name: Mapped[str] = mapped_column(String(80), nullable=False)
-    birth_date: Mapped[date] = mapped_column(Date, nullable=False)
+    birth_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 

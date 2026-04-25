@@ -1,4 +1,5 @@
 from datetime import UTC, date, datetime
+from typing import Optional
 from uuid import uuid4
 
 from src.modules.auth.application.dtos import (
@@ -47,7 +48,7 @@ class RegisterUser:
             Profile(
                 user_id=persisted_user.id,
                 name=data.name,
-                birth_date=data.birth_date,
+                birth_date=None,
                 created_at=datetime.now(UTC),
                 updated_at=datetime.now(UTC),
             )
@@ -67,7 +68,10 @@ class RegisterUser:
         )
 
 
-def _calculate_age(birth_date: date) -> int:
+def _calculate_age(birth_date: Optional[date]) -> Optional[int]:
+    if birth_date is None:
+        return None
+
     today = datetime.now(UTC).date()
     years = today.year - birth_date.year
     if (today.month, today.day) < (birth_date.month, birth_date.day):

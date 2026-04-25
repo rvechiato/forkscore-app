@@ -8,7 +8,6 @@ def test_register_user_returns_token_and_user(client) -> None:
         "/auth/register",
         json={
             "name": "Rafa Vecchiato",
-            "birth_date": "1991-03-05",
             "email": "rafa@example.com",
             "password": "super-secret-123",
         },
@@ -18,8 +17,8 @@ def test_register_user_returns_token_and_user(client) -> None:
     body = response.json()
     assert body["token_type"] == "bearer"
     assert body["user"]["name"] == "Rafa Vecchiato"
-    assert body["user"]["birth_date"] == "1991-03-05"
-    assert body["user"]["age"] >= 18
+    assert body["user"]["birth_date"] is None
+    assert body["user"]["age"] is None
     assert body["user"]["email"] == "rafa@example.com"
 
     payload = jwt.decode(
@@ -33,7 +32,6 @@ def test_register_user_returns_token_and_user(client) -> None:
 def test_register_user_rejects_duplicate_email(client) -> None:
     payload = {
         "name": "Rafa Vecchiato",
-        "birth_date": "1991-03-05",
         "email": "rafa@example.com",
         "password": "super-secret-123",
     }
@@ -49,7 +47,6 @@ def test_register_user_rejects_duplicate_email(client) -> None:
 def test_login_returns_token_for_valid_credentials(client) -> None:
     register_payload = {
         "name": "Rafa Vecchiato",
-        "birth_date": "1991-03-05",
         "email": "rafa@example.com",
         "password": "super-secret-123",
     }
@@ -68,7 +65,8 @@ def test_login_returns_token_for_valid_credentials(client) -> None:
     body = response.json()
     assert body["token_type"] == "bearer"
     assert body["user"]["name"] == "Rafa Vecchiato"
-    assert body["user"]["birth_date"] == "1991-03-05"
+    assert body["user"]["birth_date"] is None
+    assert body["user"]["age"] is None
     assert body["user"]["email"] == register_payload["email"]
     assert body["access_token"]
 
@@ -78,7 +76,6 @@ def test_login_rejects_invalid_password(client) -> None:
         "/auth/register",
         json={
             "name": "Rafa Vecchiato",
-            "birth_date": "1991-03-05",
             "email": "rafa@example.com",
             "password": "super-secret-123",
         },

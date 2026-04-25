@@ -3,7 +3,6 @@ def _register_and_get_token(client, email: str = "rafa@example.com") -> str:
         "/auth/register",
         json={
             "name": "Rafa Vecchiato",
-            "birth_date": "1991-03-05",
             "email": email,
             "password": "super-secret-123",
         },
@@ -23,8 +22,8 @@ def test_get_my_profile_returns_authenticated_profile(client) -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["name"] == "Rafa Vecchiato"
-    assert body["birth_date"] == "1991-03-05"
-    assert body["age"] >= 18
+    assert body["birth_date"] is None
+    assert body["age"] is None
     assert body["email"] == "rafa@example.com"
 
 

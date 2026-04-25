@@ -14,7 +14,7 @@ void main() {
       ForkScoreApp(repository: FakeAuthRepository()),
     );
 
-    expect(find.text('ForkScore'), findsOneWidget);
+    expect(find.text('novo ForkScore'), findsOneWidget);
     expect(find.text('Entrar'), findsWidgets);
     expect(find.text('Cadastro'), findsOneWidget);
   });
@@ -26,16 +26,13 @@ void main() {
       ForkScoreApp(repository: FakeAuthRepository()),
     );
 
+    await tester.ensureVisible(find.text('Cadastro'));
     await tester.tap(find.text('Cadastro'));
     await tester.pumpAndSettle();
 
     await tester.enterText(
       find.byKey(const Key('register-name-field')),
       'Rafa Vecchiato',
-    );
-    await tester.enterText(
-      find.byKey(const Key('register-birth-date-field')),
-      '1991-03-05',
     );
     await tester.enterText(
       find.byKey(const Key('auth-email-field')),
@@ -52,7 +49,7 @@ void main() {
 
     expect(find.text('Meu perfil'), findsOneWidget);
     expect(find.text('Rafa Vecchiato'), findsWidgets);
-    expect(find.textContaining('Email canonico'), findsOneWidget);
+    expect(find.text('rafa@example.com'), findsWidgets);
   });
 }
 
@@ -75,15 +72,12 @@ class FakeAuthRepository implements AuthRepository {
   @override
   Future<AuthSession> register({
     required String name,
-    required DateTime birthDate,
     required String email,
     required String password,
   }) async {
     _user = AuthUser(
       id: 'user-1',
       name: name,
-      birthDate: birthDate,
-      age: 34,
       email: email,
     );
 
@@ -94,14 +88,14 @@ class FakeAuthRepository implements AuthRepository {
   Future<AuthUser> updateMyProfile({
     required String accessToken,
     required String name,
-    required DateTime birthDate,
+    required DateTime? birthDate,
     required String email,
   }) async {
     _user = AuthUser(
       id: _user.id,
       name: name,
       birthDate: birthDate,
-      age: 34,
+      age: birthDate == null ? null : 34,
       email: email,
     );
 
@@ -111,8 +105,6 @@ class FakeAuthRepository implements AuthRepository {
   AuthUser _user = AuthUser(
     id: 'user-1',
     name: 'Rafa Vecchiato',
-    birthDate: DateTime(1991, 3, 5),
-    age: 34,
     email: 'rafa@example.com',
   );
 }

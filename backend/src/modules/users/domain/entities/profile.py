@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import date, datetime
+from typing import Optional
 from uuid import UUID
 
 
@@ -9,6 +10,6 @@ class Profile:
 
     user_id: UUID
     name: str
-    birth_date: date
+    birth_date: Optional[date]
     created_at: datetime
     updated_at: datetime

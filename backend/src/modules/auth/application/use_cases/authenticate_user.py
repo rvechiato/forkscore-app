@@ -1,4 +1,5 @@
 from datetime import UTC, date, datetime
+from typing import Optional
 
 from src.modules.auth.application.dtos import (
     AuthSuccessOutput,
@@ -58,7 +59,10 @@ class AuthenticateUser:
         )
 
 
-def _calculate_age(birth_date: date) -> int:
+def _calculate_age(birth_date: Optional[date]) -> Optional[int]:
+    if birth_date is None:
+        return None
+
     today = datetime.now(UTC).date()
     years = today.year - birth_date.year
     if (today.month, today.day) < (birth_date.month, birth_date.day):

@@ -24,14 +24,12 @@ class SessionController extends ChangeNotifier {
 
   Future<void> register({
     required String name,
-    required DateTime birthDate,
     required String email,
     required String password,
   }) async {
     await _run(() async {
       _session = await _repository.register(
         name: name,
-        birthDate: birthDate,
         email: email,
         password: password,
       );
@@ -66,7 +64,7 @@ class SessionController extends ChangeNotifier {
 
   Future<void> updateProfile({
     required String name,
-    required DateTime birthDate,
+    required DateTime? birthDate,
     required String email,
   }) async {
     final session = _session;

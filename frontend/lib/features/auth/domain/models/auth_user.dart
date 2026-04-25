@@ -2,15 +2,15 @@ class AuthUser {
   const AuthUser({
     required this.id,
     required this.name,
-    required this.birthDate,
-    required this.age,
+    this.birthDate,
+    this.age,
     required this.email,
   });
 
   final String id;
   final String name;
-  final DateTime birthDate;
-  final int age;
+  final DateTime? birthDate;
+  final int? age;
   final String email;
 
   AuthUser copyWith({

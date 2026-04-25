@@ -18,7 +18,6 @@ class ForkScoreApiAuthRepository implements AuthRepository {
   @override
   Future<AuthSession> register({
     required String name,
-    required DateTime birthDate,
     required String email,
     required String password,
   }) async {
@@ -27,7 +26,6 @@ class ForkScoreApiAuthRepository implements AuthRepository {
       headers: _jsonHeaders,
       body: jsonEncode({
         'name': name,
-        'birth_date': _formatDate(birthDate),
         'email': email,
         'password': password,
       }),
@@ -69,7 +67,7 @@ class ForkScoreApiAuthRepository implements AuthRepository {
   Future<AuthUser> updateMyProfile({
     required String accessToken,
     required String name,
-    required DateTime birthDate,
+    required DateTime? birthDate,
     required String email,
   }) async {
     final response = await _client.put(
@@ -77,7 +75,7 @@ class ForkScoreApiAuthRepository implements AuthRepository {
       headers: _authorizedHeaders(accessToken),
       body: jsonEncode({
         'name': name,
-        'birth_date': _formatDate(birthDate),
+        'birth_date': birthDate == null ? null : _formatDate(birthDate),
         'email': email,
       }),
     );
@@ -112,11 +110,14 @@ class ForkScoreApiAuthRepository implements AuthRepository {
   }
 
   AuthUser _parseUser(Map<String, dynamic> payload) {
+    final birthDateValue = payload['birth_date'];
+    final ageValue = payload['age'];
+
     return AuthUser(
       id: payload['id'] as String,
       name: payload['name'] as String,
-      birthDate: DateTime.parse(payload['birth_date'] as String),
-      age: payload['age'] as int,
+      birthDate: birthDateValue is String ? DateTime.parse(birthDateValue) : null,
+      age: ageValue is int ? ageValue : null,
       email: payload['email'] as String,
     );
   }
