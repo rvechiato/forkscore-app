@@ -1,67 +1,179 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
-import '../controllers/session_controller.dart';
+import '../../../../shared/theme/app_theme.dart';
+import '../../../../shared/widgets/action_buttons.dart';
+import '../../../../shared/widgets/forkscore_text_field.dart';
 
-enum _AuthMode { login, register }
+enum _Screen { login, register, home }
 
-class AuthShellPage extends StatelessWidget {
-  const AuthShellPage({
-    super.key,
-    required this.controller,
-  });
+class AuthShellPage extends StatefulWidget {
+  const AuthShellPage({super.key});
 
-  final SessionController controller;
+  @override
+  State<AuthShellPage> createState() => _AuthShellPageState();
+}
+
+class _AuthShellPageState extends State<AuthShellPage> {
+  _Screen _screen = _Screen.login;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        color: const Color(0xFFF6EBDC),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 520),
-                child: ListenableBuilder(
-                  listenable: controller,
-                  builder: (context, _) {
-                    return controller.isAuthenticated
-                        ? _ProfileCard(controller: controller)
-                        : _AuthLanding(controller: controller);
-                  },
-                ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final useDeviceFrame = constraints.maxWidth >= 600;
+          final showPreviewNav = useDeviceFrame && constraints.maxHeight >= 860;
+
+          return ColoredBox(
+            color: useDeviceFrame
+                ? const Color(0xFFE6E1DA)
+                : AppTheme.cream,
+            child: Center(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: useDeviceFrame ? 24 : 0,
+                      vertical: useDeviceFrame ? 24 : 0,
+                    ),
+                    child: Container(
+                      width: double.infinity,
+                      constraints: BoxConstraints(
+                        maxWidth: useDeviceFrame ? 390 : double.infinity,
+                        maxHeight: useDeviceFrame ? 844 : double.infinity,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.cream,
+                        borderRadius: BorderRadius.circular(
+                          useDeviceFrame ? 40 : 0,
+                        ),
+                        border: useDeviceFrame
+                            ? Border.all(
+                                color: const Color(0xFF262322),
+                                width: 8,
+                              )
+                            : null,
+                        boxShadow: useDeviceFrame
+                            ? const [
+                                BoxShadow(
+                                  color: Color(0x33000000),
+                                  blurRadius: 32,
+                                  offset: Offset(0, 20),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: Column(
+                        children: [
+                          const _StatusBar(),
+                          Expanded(
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              switchInCurve: Curves.easeOutCubic,
+                              switchOutCurve: Curves.easeInCubic,
+                              child: switch (_screen) {
+                                _Screen.login => _LoginPage(
+                                    key: const ValueKey('login-page'),
+                                    onEnter: _goHome,
+                                    onCreateAccount: () {
+                                      setState(
+                                        () => _screen = _Screen.register,
+                                      );
+                                    },
+                                  ),
+                                _Screen.register => _RegisterPage(
+                                    key: const ValueKey('register-page'),
+                                    onBack: () {
+                                      setState(
+                                        () => _screen = _Screen.login,
+                                      );
+                                    },
+                                    onSubmit: _goHome,
+                                  ),
+                                _Screen.home => _HomePage(
+                                    key: const ValueKey('home-page'),
+                                  ),
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (showPreviewNav)
+                    Positioned(
+                      bottom: 32,
+                      child: _PreviewNavigator(
+                        current: _screen,
+                        onSelect: (screen) {
+                          setState(() => _screen = screen);
+                        },
+                      ),
+                    ),
+                ],
               ),
             ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _goHome() {
+    setState(() => _screen = _Screen.home);
+  }
+}
+
+class _StatusBar extends StatelessWidget {
+  const _StatusBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 14, 24, 8),
+      child: Row(
+        children: [
+          Text(
+            '9:41',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
           ),
-        ),
+          const Spacer(),
+          const Icon(Icons.menu_rounded, size: 16),
+          const SizedBox(width: 6),
+          const Icon(Icons.public_rounded, size: 16),
+          const SizedBox(width: 6),
+          const Icon(Icons.battery_full_rounded, size: 18),
+        ],
       ),
     );
   }
 }
 
-class _AuthLanding extends StatefulWidget {
-  const _AuthLanding({required this.controller});
+class _LoginPage extends StatefulWidget {
+  const _LoginPage({
+    super.key,
+    required this.onEnter,
+    required this.onCreateAccount,
+  });
 
-  final SessionController controller;
+  final VoidCallback onEnter;
+  final VoidCallback onCreateAccount;
 
   @override
-  State<_AuthLanding> createState() => _AuthLandingState();
+  State<_LoginPage> createState() => _LoginPageState();
 }
 
-class _AuthLandingState extends State<_AuthLanding> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController(text: 'rafa@example.com');
-  final _passwordController = TextEditingController(text: 'super-secret-123');
-
-  _AuthMode _mode = _AuthMode.login;
+class _LoginPageState extends State<_LoginPage> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _obscure = true;
 
   @override
   void dispose() {
-    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -69,555 +181,791 @@ class _AuthLandingState extends State<_AuthLanding> {
 
   @override
   Widget build(BuildContext context) {
-    final busy = widget.controller.isBusy;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SizedBox(height: 24),
-        const Center(child: _ForkScoreLogo()),
-        const SizedBox(height: 20),
-        Text(
-          'novo ForkScore',
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.displaySmall?.copyWith(
-            color: const Color(0xFF2F2218),
-            fontWeight: FontWeight.w700,
-            letterSpacing: -1.2,
-          ),
-        ),
-        const SizedBox(height: 28),
-        Row(
-          children: [
-            Expanded(
-              child: FilledButton(
-                onPressed: busy
-                    ? null
-                    : () {
-                        widget.controller.clearError();
-                        setState(() => _mode = _AuthMode.login);
-                      },
-                style: FilledButton.styleFrom(
-                  backgroundColor: _mode == _AuthMode.login
-                      ? const Color(0xFF8E4B2A)
-                      : const Color(0xFFB68962),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(32, 64, 32, 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Center(child: _LogoMark()),
+          const SizedBox(height: 14),
+          Text(
+            'ForkScore',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                  fontSize: 31,
+                  height: 1,
+                  letterSpacing: -0.6,
                 ),
-                child: const Text('Login'),
+          ),
+          const SizedBox(height: 56),
+          ForkScoreTextField(
+            key: const Key('login-email-field'),
+            controller: _emailController,
+            label: '',
+            hintText: 'Email',
+            keyboardType: TextInputType.emailAddress,
+            prefixIcon: const Icon(Icons.email_outlined, size: 20),
+          ),
+          const SizedBox(height: 14),
+          ForkScoreTextField(
+            key: const Key('login-password-field'),
+            controller: _passwordController,
+            label: '',
+            hintText: 'Senha',
+            obscureText: _obscure,
+            prefixIcon: const Icon(Icons.lock_outline, size: 20),
+            suffixIcon: IconButton(
+              onPressed: () => setState(() => _obscure = !_obscure),
+              icon: Icon(
+                _obscure
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+                size: 20,
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: FilledButton(
-                onPressed: busy
-                    ? null
-                    : () {
-                        widget.controller.clearError();
-                        setState(() => _mode = _AuthMode.register);
-                      },
-                style: FilledButton.styleFrom(
-                  backgroundColor: _mode == _AuthMode.register
-                      ? const Color(0xFF8E4B2A)
-                      : const Color(0xFFB68962),
-                ),
-                child: const Text('Cadastro'),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        _SurfaceCard(
-          title: _mode == _AuthMode.login ? 'Entrar' : 'Criar conta',
-          errorMessage: widget.controller.errorMessage,
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (_mode == _AuthMode.register) ...[
-                  TextFormField(
-                    key: const Key('register-name-field'),
-                    controller: _nameController,
-                    decoration: const InputDecoration(labelText: 'Seu nome'),
-                    validator: (value) {
-                      if (_mode == _AuthMode.login) {
-                        return null;
-                      }
-                      if (value == null || value.trim().length < 2) {
-                        return 'Informe um nome valido.';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                ],
-                TextFormField(
-                  key: const Key('auth-email-field'),
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                  validator: (value) {
-                    if (value == null || !value.contains('@')) {
-                      return 'Informe um email valido.';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  key: const Key('auth-password-field'),
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Senha'),
-                  validator: (value) {
-                    if (value == null || value.length < 8) {
-                      return 'Use ao menos 8 caracteres.';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-                FilledButton(
-                  key: const Key('auth-submit-button'),
-                  onPressed: busy ? null : _submit,
-                  child: Text(
-                    busy
-                        ? 'Aguarde...'
-                        : _mode == _AuthMode.login
-                        ? 'Entrar'
-                        : 'Criar conta',
-                  ),
-                ),
-              ],
-            ),
           ),
-        ),
-      ],
+          const SizedBox(height: 18),
+          PrimaryActionButton(
+            label: 'Entrar',
+            onPressed: _submit,
+          ),
+          const SizedBox(height: 30),
+          Column(
+            children: [
+              TextButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Fluxo de recuperacao ainda e visual.'),
+                    ),
+                  );
+                },
+                child: Text(
+                  'Esqueceu a senha?',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.charcoal,
+                        decoration: TextDecoration.underline,
+                        decorationColor: const Color(0xFFD7CEC2),
+                        decorationThickness: 1,
+                      ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              TextButton(
+                key: const Key('go-to-register-button'),
+                onPressed: widget.onCreateAccount,
+                child: Text(
+                  'Criar nova conta',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.charcoal,
+                        fontWeight: FontWeight.w700,
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppTheme.charcoal,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
-  Future<void> _submit() async {
-    widget.controller.clearError();
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    if (_mode == _AuthMode.login) {
-      await widget.controller.login(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
+  void _submit() {
+    if (_emailController.text.trim().isEmpty ||
+        _passwordController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Preencha email e senha para entrar.'),
+        ),
       );
       return;
     }
 
-    await widget.controller.register(
-      name: _nameController.text.trim(),
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-    );
+    widget.onEnter();
   }
 }
 
-class _ForkScoreLogo extends StatelessWidget {
-  const _ForkScoreLogo();
+class _RegisterPage extends StatefulWidget {
+  const _RegisterPage({
+    super.key,
+    required this.onBack,
+    required this.onSubmit,
+  });
+
+  final VoidCallback onBack;
+  final VoidCallback onSubmit;
 
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 140,
-      height: 140,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Container(
-            width: 140,
-            height: 140,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8D4B8),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: const Color(0xFFD3B38C),
-                width: 2,
-              ),
-            ),
-          ),
-          Positioned(
-            left: 28,
-            top: 26,
-            child: SizedBox(
-              width: 64,
-              height: 64,
-              child: CustomPaint(painter: _GraphPainter()),
-            ),
-          ),
-          Positioned(
-            right: 30,
-            top: 34,
-            child: Transform.rotate(
-              angle: math.pi / 14,
-              child: const _KnifeShape(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  State<_RegisterPage> createState() => _RegisterPageState();
 }
 
-class _GraphPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final linePaint = Paint()
-      ..color = const Color(0xFF6F4B33)
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
-
-    final nodePaint = Paint()..color = const Color(0xFF8E4B2A);
-
-    final points = <Offset>[
-      Offset(size.width * 0.15, size.height * 0.7),
-      Offset(size.width * 0.45, size.height * 0.28),
-      Offset(size.width * 0.76, size.height * 0.58),
-    ];
-
-    canvas.drawLine(points[0], points[1], linePaint);
-    canvas.drawLine(points[1], points[2], linePaint);
-    canvas.drawLine(points[0], points[2], linePaint);
-
-    for (final point in points) {
-      canvas.drawCircle(point, 6, nodePaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _KnifeShape extends StatelessWidget {
-  const _KnifeShape();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 22,
-      height: 70,
-      child: Stack(
-        alignment: Alignment.topCenter,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 2),
-            width: 10,
-            height: 42,
-            decoration: const BoxDecoration(
-              color: Color(0xFFF8F5EF),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(8),
-                topRight: Radius.circular(8),
-                bottomLeft: Radius.circular(4),
-                bottomRight: Radius.circular(4),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 0,
-            child: Container(
-              width: 22,
-              height: 28,
-              decoration: const BoxDecoration(
-                color: Color(0xFF6F4630),
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProfileCard extends StatefulWidget {
-  const _ProfileCard({required this.controller});
-
-  final SessionController controller;
-
-  @override
-  State<_ProfileCard> createState() => _ProfileCardState();
-}
-
-class _ProfileCardState extends State<_ProfileCard> {
-  final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _nameController;
-  late final TextEditingController _birthDateController;
-  late final TextEditingController _emailController;
-
-  @override
-  void initState() {
-    super.initState();
-    final user = widget.controller.currentUser!;
-    _nameController = TextEditingController(text: user.name);
-    _birthDateController = TextEditingController(
-      text: user.birthDate == null ? '' : _apiDate(user.birthDate!),
-    );
-    _emailController = TextEditingController(text: user.email);
-  }
-
-  @override
-  void didUpdateWidget(covariant _ProfileCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    final user = widget.controller.currentUser!;
-    _nameController.text = user.name;
-    _birthDateController.text =
-        user.birthDate == null ? '' : _apiDate(user.birthDate!);
-    _emailController.text = user.email;
-  }
+class _RegisterPageState extends State<_RegisterPage> {
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _birthDateController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   @override
   void dispose() {
     _nameController.dispose();
-    _birthDateController.dispose();
     _emailController.dispose();
+    _birthDateController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final user = widget.controller.currentUser!;
-    final busy = widget.controller.isBusy;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SizedBox(height: 24),
-        const Center(child: _ForkScoreLogo()),
-        const SizedBox(height: 20),
-        Text(
-          'Meu perfil',
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.displaySmall?.copyWith(
-            color: const Color(0xFF2F2218),
-            fontWeight: FontWeight.w700,
-            letterSpacing: -1.2,
-          ),
-        ),
-        const SizedBox(height: 24),
-        _SurfaceCard(
-          title: user.name,
-          errorMessage: widget.controller.errorMessage,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Stack(
+            alignment: Alignment.center,
             children: [
-              Text(
-                user.email,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: const Color(0xFF6C5542),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  key: const Key('register-back-button'),
+                  onPressed: widget.onBack,
+                  icon: const Icon(Icons.arrow_back_rounded),
                 ),
               ),
-              const SizedBox(height: 14),
-              Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  _ProfilePill(
-                    label: user.age == null
-                        ? 'Idade pendente'
-                        : '${user.age} anos',
-                  ),
-                  _ProfilePill(
-                    label: user.birthDate == null
-                        ? 'Nascimento nao informado'
-                        : _apiDate(user.birthDate!),
-                  ),
-                ],
+              Text(
+                'Criar Conta',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontSize: 28,
+                      height: 1,
+                    ),
               ),
-              const SizedBox(height: 22),
-              Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      key: const Key('profile-name-field'),
-                      controller: _nameController,
-                      decoration: const InputDecoration(labelText: 'Nome'),
-                      validator: (value) {
-                        if (value == null || value.trim().length < 2) {
-                          return 'Informe um nome valido.';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      key: const Key('profile-birth-date-field'),
-                      controller: _birthDateController,
-                      decoration: const InputDecoration(
-                        labelText: 'Data de nascimento (AAAA-MM-DD)',
+            ],
+          ),
+          const SizedBox(height: 24),
+          _FieldLabel(
+            text: 'Nome Completo',
+            child: ForkScoreTextField(
+              key: const Key('register-name-field'),
+              controller: _nameController,
+              label: '',
+              hintText: '',
+            ),
+          ),
+          const SizedBox(height: 12),
+          _FieldLabel(
+            text: 'Email',
+            child: ForkScoreTextField(
+              key: const Key('register-email-field'),
+              controller: _emailController,
+              label: '',
+              hintText: '',
+            ),
+          ),
+          const SizedBox(height: 12),
+          _FieldLabel(
+            text: 'Data de Nascimento',
+            child: ForkScoreTextField(
+              key: const Key('register-birth-date-field'),
+              controller: _birthDateController,
+              label: '',
+              hintText: '',
+              suffixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _FieldLabel(
+            text: 'Senha',
+            child: ForkScoreTextField(
+              key: const Key('register-password-field'),
+              controller: _passwordController,
+              label: '',
+              hintText: 'Senha',
+              obscureText: true,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ForkScoreTextField(
+            key: const Key('register-confirm-password-field'),
+            controller: _confirmPasswordController,
+            label: '',
+            hintText: 'Confirmar Senha',
+            obscureText: true,
+          ),
+          const SizedBox(height: 28),
+          SecondaryActionButton(
+            label: 'Criar Conta',
+            onPressed: _submit,
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.arrow_back_ios_new_rounded, size: 14),
+              const SizedBox(width: 2),
+              Text(
+                'Ja tem conta? ',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              TextButton(
+                key: const Key('register-login-link'),
+                onPressed: widget.onBack,
+                child: Text(
+                  'Login',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.charcoal,
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppTheme.charcoal,
                       ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return null;
-                        }
-                        return DateTime.tryParse(value) == null
-                            ? 'Use o formato AAAA-MM-DD.'
-                            : null;
-                      },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _submit() {
+    if (_nameController.text.trim().isEmpty ||
+        _emailController.text.trim().isEmpty ||
+        _passwordController.text.trim().isEmpty ||
+        _confirmPasswordController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Preencha todos os campos obrigatorios.'),
+        ),
+      );
+      return;
+    }
+
+    widget.onSubmit();
+  }
+}
+
+class _HomePage extends StatelessWidget {
+  const _HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'ForkScore',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontSize: 22,
+                          ),
                     ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      key: const Key('profile-email-field'),
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(labelText: 'Email'),
-                      validator: (value) {
-                        if (value == null || !value.contains('@')) {
-                          return 'Informe um email valido.';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                    Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: [
-                        FilledButton(
-                          key: const Key('profile-save-button'),
-                          onPressed: busy ? null : _save,
-                          child: Text(busy ? 'Salvando...' : 'Salvar'),
-                        ),
-                        OutlinedButton(
-                          key: const Key('profile-refresh-button'),
-                          onPressed: busy
-                              ? null
-                              : widget.controller.refreshProfile,
-                          child: const Text('Atualizar'),
-                        ),
-                        TextButton(
-                          key: const Key('logout-button'),
-                          onPressed: busy ? null : widget.controller.logout,
-                          child: const Text('Sair'),
-                        ),
-                      ],
+                    const SizedBox(height: 4),
+                    Text(
+                      'Ola, Gastronomo!',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                     ),
                   ],
                 ),
               ),
+              const _AvatarBadge(),
             ],
           ),
-        ),
-      ],
+          const SizedBox(height: 18),
+          _HeroCard(),
+          const SizedBox(height: 14),
+          Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 16,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: AppTheme.terracotta,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                ...List.generate(
+                  2,
+                  (index) => Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFD5CEC5),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          Text(
+            'Acoes Rapidas',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontSize: 20,
+                ),
+          ),
+          const SizedBox(height: 12),
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 3,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.02,
+            children: const [
+              _QuickActionCard(
+                color: Color(0xFF4A6B53),
+                icon: Icons.search_rounded,
+                label: 'Buscar\nLocais',
+              ),
+              _QuickActionCard(
+                color: Color(0xFFC05D43),
+                icon: Icons.favorite_border_rounded,
+                label: 'Meus\nFavoritos',
+              ),
+              _QuickActionCard(
+                color: Color(0xFF5C82A6),
+                icon: Icons.map_outlined,
+                label: 'Mapa',
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Text(
+            'Explorar Categorias',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontSize: 20,
+                ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 130,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: const [
+                _CategoryCard(
+                  emoji: '☕',
+                  colors: [Color(0xFF6F5240), Color(0xFFB48D74)],
+                  label: 'Cafeterias\nAcolhedoras',
+                ),
+                SizedBox(width: 12),
+                _CategoryCard(
+                  emoji: '🍽️',
+                  colors: [Color(0xFFC05D43), Color(0xFFD79578)],
+                  label: 'Restaurantes\nLocais',
+                ),
+                SizedBox(width: 12),
+                _CategoryCard(
+                  emoji: '🍣',
+                  colors: [Color(0xFF5C82A6), Color(0xFF8EB3CF)],
+                  label: 'Restaurantes\nOrientais',
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
-  }
-
-  Future<void> _save() async {
-    widget.controller.clearError();
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    await widget.controller.updateProfile(
-      name: _nameController.text.trim(),
-      birthDate: _birthDateController.text.trim().isEmpty
-          ? null
-          : DateTime.parse(_birthDateController.text.trim()),
-      email: _emailController.text.trim(),
-    );
-  }
-
-  String _apiDate(DateTime value) {
-    final month = value.month.toString().padLeft(2, '0');
-    final day = value.day.toString().padLeft(2, '0');
-    return '$day/$month/${value.year}';
   }
 }
 
-class _ProfilePill extends StatelessWidget {
-  const _ProfilePill({required this.label});
+class _LogoMark extends StatelessWidget {
+  const _LogoMark();
 
+  @override
+  Widget build(BuildContext context) {
+    return Image.asset(
+      'assets/images/icon_forkscore.png',
+      width: 150,
+      height: 108,
+      fit: BoxFit.contain,
+    );
+  }
+}
+
+class _HeroCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppTheme.terracotta,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x26000000),
+            blurRadius: 18,
+            offset: Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Explore & Avalie',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        color: Colors.white,
+                        fontSize: 28,
+                        height: 1.02,
+                      ),
+                ),
+                const SizedBox(height: 16),
+                FilledButton(
+                  key: const Key('new-review-button'),
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Iniciando fluxo de avaliacao...'),
+                      ),
+                    );
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: AppTheme.terracotta,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 10,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  child: const Text('Nova Avaliacao'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          const _HeroGraphic(),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroGraphic extends StatelessWidget {
+  const _HeroGraphic();
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: 0.18,
+      child: Container(
+        width: 98,
+        height: 98,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              left: 16,
+              top: 18,
+              child: Container(
+                width: 42,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD5E8D4),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            Positioned(
+              right: 16,
+              bottom: 16,
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFFF2CC),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.place_rounded,
+                  color: AppTheme.terracotta,
+                  size: 22,
+                ),
+              ),
+            ),
+            const Center(
+              child: Icon(
+                Icons.restaurant_menu_rounded,
+                color: Colors.white,
+                size: 34,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickActionCard extends StatelessWidget {
+  const _QuickActionCard({
+    required this.color,
+    required this.icon,
+    required this.label,
+  });
+
+  final Color color;
+  final IconData icon;
   final String label;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFFE2DBCF)),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: const Color(0xFF5A4332),
-          fontWeight: FontWeight.w600,
+    return Material(
+      color: color,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(label.replaceAll('\n', ' '))),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white, size: 26),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 11,
+                      height: 1.2,
+                    ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _SurfaceCard extends StatelessWidget {
-  const _SurfaceCard({
-    required this.title,
-    required this.child,
-    this.errorMessage,
+class _CategoryCard extends StatelessWidget {
+  const _CategoryCard({
+    required this.emoji,
+    required this.colors,
+    required this.label,
   });
 
-  final String title;
-  final Widget child;
-  final String? errorMessage;
+  final String emoji;
+  final List<Color> colors;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: SizedBox(
+        width: 130,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: colors,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+            ),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.08),
+                    Colors.black.withValues(alpha: 0.72),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              right: 12,
+              top: 12,
+              child: Text(
+                emoji,
+                style: const TextStyle(fontSize: 26),
+              ),
+            ),
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: 12,
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
-    return DecoratedBox(
+class _AvatarBadge extends StatelessWidget {
+  const _AvatarBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40,
+      height: 40,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.96),
-        borderRadius: BorderRadius.circular(36),
-        border: Border.all(color: const Color(0xFFE4DDD0)),
+        shape: BoxShape.circle,
+        gradient: const LinearGradient(
+          colors: [Color(0xFFF1E0D3), Color(0xFFD9E5D9)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(color: AppTheme.cream, width: 2),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        'RV',
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+      ),
+    );
+  }
+}
+
+class _FieldLabel extends StatelessWidget {
+  const _FieldLabel({
+    required this.text,
+    required this.child,
+  });
+
+  final String text;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 2, bottom: 6),
+          child: Text(
+            text,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+        child,
+      ],
+    );
+  }
+}
+
+class _PreviewNavigator extends StatelessWidget {
+  const _PreviewNavigator({
+    required this.current,
+    required this.onSelect,
+  });
+
+  final _Screen current;
+  final ValueChanged<_Screen> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(999),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x12000000),
-            blurRadius: 24,
-            offset: Offset(0, 14),
+            color: Color(0x24000000),
+            blurRadius: 18,
+            offset: Offset(0, 10),
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(30),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: const Color(0xFF2E2118),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _PreviewNavButton(
+            label: 'Login',
+            active: current == _Screen.login,
+            onTap: () => onSelect(_Screen.login),
+          ),
+          _PreviewNavButton(
+            label: 'Cadastro',
+            active: current == _Screen.register,
+            onTap: () => onSelect(_Screen.register),
+          ),
+          _PreviewNavButton(
+            label: 'Home',
+            active: current == _Screen.home,
+            onTap: () => onSelect(_Screen.home),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PreviewNavButton extends StatelessWidget {
+  const _PreviewNavButton({
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: TextButton(
+        onPressed: onTap,
+        style: TextButton.styleFrom(
+          foregroundColor: active ? AppTheme.terracotta : AppTheme.charcoal,
+          textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w700,
               ),
-            ),
-            if (errorMessage != null) ...[
-              const SizedBox(height: 18),
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFBE8E2),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Text(
-                  errorMessage!,
-                  style: const TextStyle(
-                    color: Color(0xFF8A2E1D),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-            const SizedBox(height: 24),
-            child,
-          ],
         ),
+        child: Text(label),
       ),
     );
   }

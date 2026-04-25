@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from src.modules.auth.infra.database import models as auth_models  # noqa: F401
+from src.modules.places.infra.database import models as place_models  # noqa: F401
 from src.modules.users.infra.database import models as user_models  # noqa: F401
 from src.main import app
 from src.shared.infra.database.base import Base
