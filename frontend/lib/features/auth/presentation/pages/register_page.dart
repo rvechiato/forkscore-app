@@ -35,128 +35,79 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: IconButton(
-                  key: const Key('register-back-button'),
-                  onPressed: widget.onBack,
-                  icon: const Icon(Icons.arrow_back_rounded),
-                ),
-              ),
-              Text(
-                'Criar Conta',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-            ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useWideLayout = constraints.maxWidth >= 900;
+
+        return SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            useWideLayout ? 56 : 24,
+            useWideLayout ? 40 : 16,
+            useWideLayout ? 56 : 24,
+            28,
           ),
-          const SizedBox(height: 24),
-          _FieldLabel(
-            text: 'Nome Completo',
-            child: ForkScoreTextField(
-              key: const Key('register-name-field'),
-              controller: _nameController,
-              hintText: 'Seu nome',
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1120),
+              child: useWideLayout
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: _RegisterIntroPanel(onBack: widget.onBack),
+                        ),
+                        const SizedBox(width: 56),
+                        Expanded(
+                          child: _RegisterFormCard(
+                            nameController: _nameController,
+                            emailController: _emailController,
+                            birthDateController: _birthDateController,
+                            passwordController: _passwordController,
+                            confirmPasswordController:
+                                _confirmPasswordController,
+                            obscurePassword: _obscurePassword,
+                            obscureConfirmPassword: _obscureConfirmPassword,
+                            onTogglePassword: () {
+                              setState(
+                                () => _obscurePassword = !_obscurePassword,
+                              );
+                            },
+                            onToggleConfirmPassword: () {
+                              setState(
+                                () => _obscureConfirmPassword =
+                                    !_obscureConfirmPassword,
+                              );
+                            },
+                            onSubmit: _submit,
+                            onBack: widget.onBack,
+                          ),
+                        ),
+                      ],
+                    )
+                  : _RegisterFormCard(
+                      nameController: _nameController,
+                      emailController: _emailController,
+                      birthDateController: _birthDateController,
+                      passwordController: _passwordController,
+                      confirmPasswordController: _confirmPasswordController,
+                      obscurePassword: _obscurePassword,
+                      obscureConfirmPassword: _obscureConfirmPassword,
+                      onTogglePassword: () {
+                        setState(() => _obscurePassword = !_obscurePassword);
+                      },
+                      onToggleConfirmPassword: () {
+                        setState(
+                          () => _obscureConfirmPassword =
+                              !_obscureConfirmPassword,
+                        );
+                      },
+                      onSubmit: _submit,
+                      onBack: widget.onBack,
+                    ),
             ),
           ),
-          const SizedBox(height: 14),
-          _FieldLabel(
-            text: 'Email',
-            child: ForkScoreTextField(
-              key: const Key('register-email-field'),
-              controller: _emailController,
-              hintText: 'seunome@email.com',
-              keyboardType: TextInputType.emailAddress,
-            ),
-          ),
-          const SizedBox(height: 14),
-          _FieldLabel(
-            text: 'Data de Nascimento',
-            child: ForkScoreTextField(
-              key: const Key('register-birth-date-field'),
-              controller: _birthDateController,
-              hintText: 'dd/mm/aaaa',
-              suffixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
-              keyboardType: TextInputType.datetime,
-            ),
-          ),
-          const SizedBox(height: 14),
-          _FieldLabel(
-            text: 'Senha',
-            child: ForkScoreTextField(
-              key: const Key('register-password-field'),
-              controller: _passwordController,
-              hintText: 'Senha',
-              obscureText: _obscurePassword,
-              suffixIcon: IconButton(
-                onPressed: () {
-                  setState(() => _obscurePassword = !_obscurePassword);
-                },
-                icon: Icon(
-                  _obscurePassword
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                  size: 20,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-          ForkScoreTextField(
-            key: const Key('register-confirm-password-field'),
-            controller: _confirmPasswordController,
-            hintText: 'Confirmar Senha',
-            obscureText: _obscureConfirmPassword,
-            suffixIcon: IconButton(
-              onPressed: () {
-                setState(
-                  () => _obscureConfirmPassword = !_obscureConfirmPassword,
-                );
-              },
-              icon: Icon(
-                _obscureConfirmPassword
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
-                size: 20,
-              ),
-            ),
-          ),
-          const SizedBox(height: 28),
-          SecondaryActionButton(label: 'Criar Conta', onPressed: _submit),
-          const SizedBox(height: 22),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.arrow_back_ios_new_rounded, size: 14),
-              const SizedBox(width: 3),
-              Text(
-                'Ja tem conta? ',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              TextButton(
-                key: const Key('register-login-link'),
-                onPressed: widget.onBack,
-                child: Text(
-                  'Login',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    decoration: TextDecoration.underline,
-                    decorationColor: AppTheme.charcoal,
-                    color: AppTheme.charcoal,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -173,6 +124,228 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     widget.onSubmit();
+  }
+}
+
+class _RegisterIntroPanel extends StatelessWidget {
+  const _RegisterIntroPanel({required this.onBack});
+
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(40),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5EF),
+        borderRadius: BorderRadius.circular(32),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextButton.icon(
+            key: const Key('register-back-button'),
+            onPressed: onBack,
+            icon: const Icon(Icons.arrow_back_rounded),
+            label: const Text('Voltar ao login'),
+          ),
+          const SizedBox(height: 28),
+          Text(
+            'Crie sua conta e comece a recomendar lugares incriveis.',
+            style: Theme.of(
+              context,
+            ).textTheme.headlineLarge?.copyWith(fontSize: 50, height: 0.96),
+          ),
+          const SizedBox(height: 18),
+          Text(
+            'A mesma identidade visual e os mesmos componentes continuam aqui, agora organizados para uma experiencia web mais ampla.',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(color: AppTheme.textMuted),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RegisterFormCard extends StatelessWidget {
+  const _RegisterFormCard({
+    required this.nameController,
+    required this.emailController,
+    required this.birthDateController,
+    required this.passwordController,
+    required this.confirmPasswordController,
+    required this.obscurePassword,
+    required this.obscureConfirmPassword,
+    required this.onTogglePassword,
+    required this.onToggleConfirmPassword,
+    required this.onSubmit,
+    required this.onBack,
+  });
+
+  final TextEditingController nameController;
+  final TextEditingController emailController;
+  final TextEditingController birthDateController;
+  final TextEditingController passwordController;
+  final TextEditingController confirmPasswordController;
+  final bool obscurePassword;
+  final bool obscureConfirmPassword;
+  final VoidCallback onTogglePassword;
+  final VoidCallback onToggleConfirmPassword;
+  final VoidCallback onSubmit;
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final useCard = MediaQuery.sizeOf(context).width >= 900;
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 500),
+      child: DecoratedBox(
+        decoration: useCard
+            ? BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: AppTheme.inputBorder),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x10000000),
+                    blurRadius: 22,
+                    offset: Offset(0, 14),
+                  ),
+                ],
+              )
+            : const BoxDecoration(),
+        child: Padding(
+          padding: EdgeInsets.all(useCard ? 36 : 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (!useCard)
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: IconButton(
+                        key: const Key('register-back-button'),
+                        onPressed: onBack,
+                        icon: const Icon(Icons.arrow_back_rounded),
+                      ),
+                    ),
+                    Text(
+                      'Criar Conta',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                  ],
+                )
+              else
+                Text(
+                  'Criar Conta',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+              const SizedBox(height: 24),
+              _FieldLabel(
+                text: 'Nome Completo',
+                child: ForkScoreTextField(
+                  key: const Key('register-name-field'),
+                  controller: nameController,
+                  hintText: 'Seu nome',
+                ),
+              ),
+              const SizedBox(height: 14),
+              _FieldLabel(
+                text: 'Email',
+                child: ForkScoreTextField(
+                  key: const Key('register-email-field'),
+                  controller: emailController,
+                  hintText: 'seunome@email.com',
+                  keyboardType: TextInputType.emailAddress,
+                ),
+              ),
+              const SizedBox(height: 14),
+              _FieldLabel(
+                text: 'Data de Nascimento',
+                child: ForkScoreTextField(
+                  key: const Key('register-birth-date-field'),
+                  controller: birthDateController,
+                  hintText: 'dd/mm/aaaa',
+                  suffixIcon: const Icon(
+                    Icons.calendar_today_outlined,
+                    size: 18,
+                  ),
+                  keyboardType: TextInputType.datetime,
+                ),
+              ),
+              const SizedBox(height: 14),
+              _FieldLabel(
+                text: 'Senha',
+                child: ForkScoreTextField(
+                  key: const Key('register-password-field'),
+                  controller: passwordController,
+                  hintText: 'Senha',
+                  obscureText: obscurePassword,
+                  suffixIcon: IconButton(
+                    onPressed: onTogglePassword,
+                    icon: Icon(
+                      obscurePassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              ForkScoreTextField(
+                key: const Key('register-confirm-password-field'),
+                controller: confirmPasswordController,
+                hintText: 'Confirmar Senha',
+                obscureText: obscureConfirmPassword,
+                suffixIcon: IconButton(
+                  onPressed: onToggleConfirmPassword,
+                  icon: Icon(
+                    obscureConfirmPassword
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                    size: 20,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 28),
+              SecondaryActionButton(label: 'Criar Conta', onPressed: onSubmit),
+              const SizedBox(height: 22),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.arrow_back_ios_new_rounded, size: 14),
+                  const SizedBox(width: 3),
+                  Text(
+                    'Ja tem conta? ',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  TextButton(
+                    key: const Key('register-login-link'),
+                    onPressed: onBack,
+                    child: Text(
+                      'Login',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppTheme.charcoal,
+                        color: AppTheme.charcoal,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

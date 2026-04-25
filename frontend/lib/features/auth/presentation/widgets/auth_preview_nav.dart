@@ -8,25 +8,33 @@ class AuthPreviewNav extends StatelessWidget {
     super.key,
     required this.current,
     required this.onSelect,
+    this.compact = false,
   });
 
   final AuthFlowScreen current;
   final ValueChanged<AuthFlowScreen> onSelect;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 8 : 18,
+        vertical: compact ? 4 : 10,
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(999),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x24000000),
-            blurRadius: 18,
-            offset: Offset(0, 10),
-          ),
-        ],
+        boxShadow: compact
+            ? null
+            : const [
+                BoxShadow(
+                  color: Color(0x24000000),
+                  blurRadius: 18,
+                  offset: Offset(0, 10),
+                ),
+              ],
+        border: compact ? Border.all(color: AppTheme.inputBorder) : null,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -34,16 +42,19 @@ class AuthPreviewNav extends StatelessWidget {
           _PreviewNavButton(
             label: 'Login',
             active: current == AuthFlowScreen.login,
+            compact: compact,
             onTap: () => onSelect(AuthFlowScreen.login),
           ),
           _PreviewNavButton(
             label: 'Cadastro',
             active: current == AuthFlowScreen.register,
+            compact: compact,
             onTap: () => onSelect(AuthFlowScreen.register),
           ),
           _PreviewNavButton(
             label: 'Home',
             active: current == AuthFlowScreen.home,
+            compact: compact,
             onTap: () => onSelect(AuthFlowScreen.home),
           ),
         ],
@@ -57,20 +68,29 @@ class _PreviewNavButton extends StatelessWidget {
     required this.label,
     required this.active,
     required this.onTap,
+    required this.compact,
   });
 
   final String label;
   final bool active;
   final VoidCallback onTap;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
+      padding: EdgeInsets.symmetric(horizontal: compact ? 2 : 6),
       child: TextButton(
         onPressed: onTap,
         style: TextButton.styleFrom(
           foregroundColor: active ? AppTheme.terracotta : AppTheme.charcoal,
+          backgroundColor: active && compact
+              ? AppTheme.terracotta.withValues(alpha: 0.08)
+              : null,
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 10 : 12,
+            vertical: compact ? 8 : 10,
+          ),
           textStyle: Theme.of(
             context,
           ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
