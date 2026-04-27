@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/navigation/app_routes.dart';
 import '../../../../shared/theme/app_theme.dart';
-import '../../../home/presentation/pages/home_page.dart';
 import '../widgets/auth_device_frame.dart';
-import 'login_page.dart';
-import 'register_page.dart';
 
-enum AuthFlowScreen { login, register, home }
+enum AuthFlowScreen { login, register }
 
-class AuthShellPage extends StatefulWidget {
-  const AuthShellPage({super.key});
+class AuthShellPage extends StatelessWidget {
+  const AuthShellPage({
+    super.key,
+    required this.currentScreen,
+    required this.child,
+    this.redirectAfterAuth,
+  });
 
-  @override
-  State<AuthShellPage> createState() => _AuthShellPageState();
-}
-
-class _AuthShellPageState extends State<AuthShellPage> {
-  AuthFlowScreen _screen = AuthFlowScreen.login;
+  final AuthFlowScreen currentScreen;
+  final Widget child;
+  final String? redirectAfterAuth;
 
   @override
   Widget build(BuildContext context) {
@@ -30,32 +30,13 @@ class _AuthShellPageState extends State<AuthShellPage> {
             child: Center(
               child: AuthDeviceFrame(
                 useWebLayout: useWebLayout,
-                currentScreen: _screen,
-                onSelectScreen: (screen) => setState(() => _screen = screen),
+                currentScreen: currentScreen,
+                onSelectScreen: (screen) => _navigateToScreen(context, screen),
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 280),
                   switchInCurve: Curves.easeOutCubic,
                   switchOutCurve: Curves.easeInCubic,
-                  child: switch (_screen) {
-                    AuthFlowScreen.login => LoginPage(
-                      key: const ValueKey('login-page'),
-                      onEnter: _goHome,
-                      onCreateAccount: () {
-                        setState(() => _screen = AuthFlowScreen.register);
-                      },
-                    ),
-                    AuthFlowScreen.register => RegisterPage(
-                      key: const ValueKey('register-page'),
-                      onBack: () {
-                        setState(() => _screen = AuthFlowScreen.login);
-                      },
-                      onSubmit: _goHome,
-                    ),
-                    AuthFlowScreen.home => const HomePage(
-                      key: ValueKey('home-page'),
-                      userName: 'Gastronomo',
-                    ),
-                  },
+                  child: child,
                 ),
               ),
             ),
@@ -65,7 +46,23 @@ class _AuthShellPageState extends State<AuthShellPage> {
     );
   }
 
-  void _goHome() {
-    setState(() => _screen = AuthFlowScreen.home);
+  void _navigateToScreen(BuildContext context, AuthFlowScreen screen) {
+    final routeName = switch (screen) {
+      AuthFlowScreen.login => AppRoutes.login,
+      AuthFlowScreen.register => AppRoutes.register,
+    };
+
+    final arguments = switch (screen) {
+      AuthFlowScreen.login => LoginRouteArgs(
+        redirectAfterLogin: redirectAfterAuth,
+      ),
+      AuthFlowScreen.register => RegisterRouteArgs(
+        redirectAfterAuth: redirectAfterAuth,
+      ),
+    };
+
+    Navigator.of(
+      context,
+    ).pushReplacementNamed(routeName, arguments: arguments);
   }
 }

@@ -25,7 +25,9 @@ e pronta para evolucao funcional posterior.
   exploracao inicial;
 - incorporar o logo oficial do ForkScore ao layout;
 - organizar a implementacao em componentes reutilizaveis e responsivos;
-- manter navegacao local mockada entre login, cadastro e home.
+- manter navegacao local mockada entre login, cadastro e home;
+- introduzir protecao de rotas para garantir que areas internas exijam sessao
+  autenticada.
 
 ## Fora de escopo
 
@@ -47,6 +49,14 @@ e pronta para evolucao funcional posterior.
 - RF05. A home deve exibir saudacao, destaque para nova avaliacao, atalhos
   principais e blocos de exploracao inicial.
 - RF06. O logo oficial deve aparecer como parte da identidade do app nas telas.
+- RF07. Login e cadastro devem ser as unicas rotas publicas do MVP.
+- RF08. Home e qualquer rota interna pos-login devem exigir autenticacao.
+- RF09. O app deve redirecionar para login quando houver tentativa de acesso a
+  rota protegida sem sessao valida.
+- RF10. O app deve impedir permanencia desnecessaria em login/cadastro quando o
+  usuario ja estiver autenticado.
+- RF11. Logout deve limpar a sessao local e bloquear novamente o acesso as
+  rotas protegidas.
 
 ## Requisitos nao funcionais
 
@@ -60,6 +70,8 @@ e pronta para evolucao funcional posterior.
   apresentacao em frame centralizado quando houver espaco suficiente.
 - RNF05. Componentes compartilhados devem ser reutilizaveis e evitar duplicacao
   de estilos entre login, cadastro e home.
+- RNF06. A estrategia de guard deve ser simples, centralizada e preparada para
+  expansao de novas rotas protegidas sem duplicar regras por tela.
 
 ## Criterios de aceite
 
@@ -71,7 +83,10 @@ e pronta para evolucao funcional posterior.
   de destaque.
 - CA04. Existe cobertura minima de teste para renderizacao inicial e navegacao
   entre login, cadastro e home.
-- CA05. `flutter analyze` e `flutter test` passam apos a implementacao.
+- CA05. O acesso direto a rotas protegidas sem autenticacao redireciona para
+  login.
+- CA06. Logout devolve o usuario ao login e remove acesso as areas protegidas.
+- CA07. `flutter analyze` e `flutter test` passam apos a implementacao.
 
 ## Dependencias e restricoes
 

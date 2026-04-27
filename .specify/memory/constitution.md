@@ -1,9 +1,9 @@
-<!-- 
-SYNC IMPACT REPORT - Constitution v1.0.0
+<!--
+SYNC IMPACT REPORT - Constitution v1.1.0
 ==========================================
-Version Change: INITIAL → 1.0.0
+Version Change: 1.0.0 → 1.1.0
 Ratification Date: 2026-04-22
-Amendment Date: 2026-04-22
+Amendment Date: 2026-04-27
 
 Created Sections:
   ✓ Core Objectives
@@ -20,17 +20,22 @@ Created Sections:
   ✓ Architectural Constraints
   ✓ Testing Discipline
 
+Updated Sections:
+  ✓ Frontend Strategy
+  ✓ Authentication & Security
+  ✓ Architectural Constraints
+
 Template Updates Required:
-  ⚠ spec-template.md - align scope with evaluation rules
-  ⚠ plan-template.md - add architectural decision checklist
-  ⚠ tasks-template.md - categorize by architectural layers
-  
+  ⚠ specs that introduce frontend navigation must classify public/protected routes
+  ⚠ plans that add new screens must document route access, redirects, and guard reuse
+  ⚠ tasks that add authenticated pages must include navigation and logout validation
+
 Dependencies: All core templates updated for Layer-based categorization (Presentation, Application, Domain, Infrastructure)
 -->
 
 # 📜 ForkScore - Aplicativo de Avaliação Gastronômica — Constitution
 
-**Versão**: 1.0.0 | **Ratificado em**: 2026-04-22 | **Última Atualização**: 2026-04-22
+**Versão**: 1.1.0 | **Ratificado em**: 2026-04-22 | **Última Atualização**: 2026-04-27
 
 ---
 
@@ -254,6 +259,52 @@ Este documento serve como **fundação imutável** para decisões técnicas futu
 - ✅ Estado management centralizador (Provider, Riverpod, ou similar)
 - ✅ Não fazer requisições diretas a BD; sempre via API Backend
 - ✅ Testes: widget + integração
+- ✅ Navegação centralizada em rotas nomeadas, sem fluxo crítico escondido em estado local de tela
+- ✅ Classificação explícita de rotas públicas e protegidas
+- ✅ Shell autenticado reutilizável para áreas pós-login
+
+### Governança de Rotas e Telas
+
+**Regra não-negociável:**
+- Toda nova rota deve ser declarada em um registro central do app
+- Toda nova tela deve definir se é **pública** ou **protegida** antes de ser implementada
+- Páginas internas do produto devem nascer como protegidas por padrão
+- Login e cadastro são exceções públicas explícitas; novas exceções exigem justificativa na spec
+- Nenhuma tela protegida pode depender apenas de ocultação visual ou botão desabilitado para controlar acesso
+
+**Definições obrigatórias para futuras implementações:**
+
+1. **Rotas públicas**
+   - acessíveis sem autenticação;
+   - usadas apenas para entrada no produto ou fluxos estritamente anônimos;
+   - no MVP, limitadas a `login` e `cadastro`, salvo nova decisão documentada.
+
+2. **Rotas protegidas**
+   - exigem sessão autenticada válida;
+   - incluem home, perfil, locais, avaliações e qualquer tela pós-login;
+   - devem ser redirecionadas para login quando abertas sem sessão.
+
+3. **Redirecionamento**
+   - acesso anônimo a rota protegida deve ir para login;
+   - após autenticação, o app deve priorizar retornar à rota originalmente solicitada;
+   - usuário autenticado não deve permanecer em login/cadastro sem necessidade operacional real.
+
+4. **Logout**
+   - deve limpar a sessão local imediatamente;
+   - deve remover acesso a qualquer rota protegida já aberta;
+   - deve devolver o usuário para uma rota pública segura.
+
+5. **Expansão futura**
+   - novas telas autenticadas devem reutilizar o mesmo guard central;
+   - não duplicar lógica de autorização dentro de cada página;
+   - placeholders, shells e menus internos devem continuar coerentes com a tabela central de rotas.
+
+**Checklist obrigatório em qualquer nova tela/rota:**
+- A rota foi adicionada ao registro central?
+- A rota foi marcada como pública ou protegida?
+- O comportamento de redirecionamento foi definido?
+- O logout continua bloqueando essa tela?
+- Há teste cobrindo acesso permitido e acesso negado quando aplicável?
 
 ### Fluxo de UX Crítico
 
@@ -422,6 +473,14 @@ class ReviewCriteria {
 4. Token expirado → POST /auth/refresh → Novo token
 ```
 
+### Regras de Acesso no Frontend
+
+- O backend continua sendo a fonte de verdade para autenticação e autorização
+- O frontend deve aplicar guard de navegação mesmo quando a sessão for mockada no MVP
+- Guard de rota não substitui validação no backend; ele apenas evita exposição indevida da UX
+- Toda tela protegida deve assumir que a sessão pode expirar e deve tratar retorno a login de forma segura
+- Não criar atalhos que permitam abrir home ou áreas internas fora do fluxo autenticado
+
 ---
 
 ## 11. 🚀 Estratégia de Evolução
@@ -483,6 +542,10 @@ class ReviewCriteria {
 - ❌ Dependências circulares entre módulos
 - ❌ Compartilhar domínio entre módulos (use value objects públicos)
 - ❌ Criptografia ou hashing fora de infraestrutura
+- ❌ Criar rota nova fora do registro central de navegação
+- ❌ Promover tela interna a pública sem decisão documentada em spec/plano
+- ❌ Duplicar lógica de auth guard em múltiplas páginas
+- ❌ Permitir acesso à home ou telas pós-login por navegação local sem sessão
 
 ### ✅ OBRIGATÓRIO
 
@@ -492,6 +555,9 @@ class ReviewCriteria {
 - ✅ Controllers são thin (validação + roteamento)
 - ✅ Toda dependência externa vai para camada Infrastructure
 - ✅ Interfaces (ports) definem contratos antes de implementação
+- ✅ Toda tela nova explicita sua política de acesso já na spec
+- ✅ Toda rota protegida reutiliza guard central e fluxo padrão de redirecionamento
+- ✅ Logout é validado sempre que uma nova área autenticada for adicionada
 
 ---
 
@@ -584,7 +650,7 @@ Este projeto evolui de forma **controlada e progressiva**, mantendo:
 
 ---
 
-**Este documento é vivo e evolui com o projeto. Última atualização: 2026-04-22 v1.0.0**
+**Este documento é vivo e evolui com o projeto. Última atualização: 2026-04-27 v1.1.0**
 
 **Desenvolvido para:** ForkScore - Aplicativo de Avaliação Gastronômica  
 **Stack:** Flutter (Mobile) + NestJS (Backend) + SQLite → PostgreSQL  

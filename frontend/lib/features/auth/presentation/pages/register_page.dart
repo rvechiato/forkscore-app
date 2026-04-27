@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/auth_scope.dart';
+import '../../../../app/navigation/app_routes.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/widgets/action_buttons.dart';
 import '../../../../shared/widgets/forkscore_text_field.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key, required this.onBack, required this.onSubmit});
+  const RegisterPage({super.key, this.redirectAfterAuth});
 
-  final VoidCallback onBack;
-  final VoidCallback onSubmit;
+  final String? redirectAfterAuth;
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -35,6 +36,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final sessionController = SessionScope.of(context);
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final useWideLayout = constraints.maxWidth >= 900;
@@ -53,9 +56,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ? Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: _RegisterIntroPanel(onBack: widget.onBack),
-                        ),
+                        Expanded(child: _RegisterIntroPanel(onBack: _goToLogin)),
                         const SizedBox(width: 56),
                         Expanded(
                           child: _RegisterFormCard(
@@ -79,7 +80,8 @@ class _RegisterPageState extends State<RegisterPage> {
                               );
                             },
                             onSubmit: _submit,
-                            onBack: widget.onBack,
+                            onBack: _goToLogin,
+                            isBusy: sessionController.isBusy,
                           ),
                         ),
                       ],
@@ -102,7 +104,8 @@ class _RegisterPageState extends State<RegisterPage> {
                         );
                       },
                       onSubmit: _submit,
-                      onBack: widget.onBack,
+                      onBack: _goToLogin,
+                      isBusy: sessionController.isBusy,
                     ),
             ),
           ),
@@ -111,7 +114,7 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (_nameController.text.trim().isEmpty ||
         _emailController.text.trim().isEmpty ||
         _birthDateController.text.trim().isEmpty ||
@@ -123,7 +126,49 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    widget.onSubmit();
+    if (_passwordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('As senhas precisam ser iguais.')),
+      );
+      return;
+    }
+
+    final sessionController = SessionScope.of(context, listen: false);
+    await sessionController.register(
+      name: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (!sessionController.isAuthenticated) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            sessionController.errorMessage ??
+                'Nao foi possivel criar a conta agora.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      widget.redirectAfterAuth ?? AppRoutes.home,
+      (route) => false,
+    );
+  }
+
+  void _goToLogin() {
+    Navigator.of(context).pushReplacementNamed(
+      AppRoutes.login,
+      arguments: LoginRouteArgs(
+        redirectAfterLogin: widget.redirectAfterAuth,
+      ),
+    );
   }
 }
 
@@ -182,6 +227,7 @@ class _RegisterFormCard extends StatelessWidget {
     required this.onToggleConfirmPassword,
     required this.onSubmit,
     required this.onBack,
+    required this.isBusy,
   });
 
   final TextEditingController nameController;
@@ -193,8 +239,9 @@ class _RegisterFormCard extends StatelessWidget {
   final bool obscureConfirmPassword;
   final VoidCallback onTogglePassword;
   final VoidCallback onToggleConfirmPassword;
-  final VoidCallback onSubmit;
+  final Future<void> Function() onSubmit;
   final VoidCallback onBack;
+  final bool isBusy;
 
   @override
   Widget build(BuildContext context) {
@@ -315,7 +362,10 @@ class _RegisterFormCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 28),
-              SecondaryActionButton(label: 'Criar Conta', onPressed: onSubmit),
+              SecondaryActionButton(
+                label: isBusy ? 'Criando conta...' : 'Criar Conta',
+                onPressed: isBusy ? null : () => onSubmit(),
+              ),
               const SizedBox(height: 22),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

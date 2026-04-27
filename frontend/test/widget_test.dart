@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:forkscore_frontend/app/app.dart';
+import 'package:forkscore_frontend/app/navigation/app_routes.dart';
 
 void main() {
   testWidgets('renderiza a tela de login inicial', (WidgetTester tester) async {
@@ -13,7 +14,32 @@ void main() {
     expect(find.text('Criar nova conta'), findsOneWidget);
   });
 
-  testWidgets('navega para cadastro e entra na home apos criar conta', (
+  testWidgets(
+    'redireciona rota protegida para login e volta ao destino apos autenticar',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(const ForkScoreApp(initialRoute: AppRoutes.places));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('login-email-field')), findsOneWidget);
+      expect(find.text('Locais'), findsNothing);
+
+      await tester.enterText(
+        find.byKey(const Key('login-email-field')),
+        'chef@example.com',
+      );
+      await tester.enterText(
+        find.byKey(const Key('login-password-field')),
+        'super-secret-123',
+      );
+      await tester.tap(find.text('Entrar'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Locais'), findsWidgets);
+      expect(find.textContaining('Area protegida'), findsOneWidget);
+    },
+  );
+
+  testWidgets('navega para cadastro, autentica e faz logout', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const ForkScoreApp());
@@ -50,10 +76,38 @@ void main() {
     await tester.tap(find.text('Criar Conta').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('Ola, Gastronomo!'), findsOneWidget);
-    expect(find.text('Nova Avaliacao'), findsOneWidget);
-    expect(find.text('Acoes Rapidas'), findsOneWidget);
-    expect(find.text('Explorar Categorias'), findsOneWidget);
+    expect(find.text('Ola, Rafa Vecchiato!'), findsOneWidget);
+    expect(find.byKey(const Key('logout-button')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('logout-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('login-email-field')), findsOneWidget);
+    expect(find.text('Ola, Rafa Vecchiato!'), findsNothing);
+  });
+
+  testWidgets('usuario autenticado navega para outra rota interna protegida', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const ForkScoreApp());
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const Key('login-email-field')),
+      'chef@example.com',
+    );
+    await tester.enterText(
+      find.byKey(const Key('login-password-field')),
+      'super-secret-123',
+    );
+    await tester.tap(find.text('Entrar'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('go-to-profile-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Perfil'), findsWidgets);
+    expect(find.textContaining('Area protegida'), findsOneWidget);
   });
 
   testWidgets(

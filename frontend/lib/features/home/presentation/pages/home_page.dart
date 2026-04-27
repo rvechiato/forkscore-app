@@ -1,97 +1,148 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/auth_scope.dart';
+import '../../../../app/navigation/app_routes.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/widgets/forkscore_logo.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key, required this.userName});
-
-  final String userName;
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final useWideLayout = constraints.maxWidth >= 1000;
+    final sessionController = SessionScope.of(context);
+    final userName = sessionController.currentUser?.name ?? 'Gastronomo';
 
-        return SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(
-            useWideLayout ? 40 : 24,
-            24,
-            useWideLayout ? 40 : 24,
-            32,
-          ),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1180),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const ForkScoreLogo(
-                        showWordmark: true,
-                        compact: true,
-                        markWidth: 34,
-                        wordmarkSize: 22,
-                      ),
-                      const Spacer(),
-                      _AvatarBadge(initials: _initialsFromName(userName)),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Ola, $userName!',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Seu painel inicial para descobrir, avaliar e recomendar.',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: AppTheme.textMuted),
-                  ),
-                  const SizedBox(height: 24),
-                  if (useWideLayout)
-                    const Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+    return Scaffold(
+      backgroundColor: AppTheme.cream,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final useWideLayout = constraints.maxWidth >= 1000;
+
+          return SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              useWideLayout ? 40 : 24,
+              24,
+              useWideLayout ? 40 : 24,
+              32,
+            ),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1180),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        Expanded(flex: 8, child: _HeroCard()),
-                        SizedBox(width: 20),
-                        Expanded(flex: 4, child: _QuickActionsPanel()),
+                        const ForkScoreLogo(
+                          showWordmark: true,
+                          compact: true,
+                          markWidth: 34,
+                          wordmarkSize: 22,
+                        ),
+                        const Spacer(),
+                        TextButton.icon(
+                          key: const Key('go-to-profile-button'),
+                          onPressed: () {
+                            Navigator.of(context).pushNamed(AppRoutes.profile);
+                          },
+                          icon: const Icon(Icons.person_outline_rounded),
+                          label: const Text('Perfil'),
+                        ),
+                        const SizedBox(width: 8),
+                        TextButton.icon(
+                          key: const Key('logout-button'),
+                          onPressed: () {
+                            sessionController.logout();
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                              AppRoutes.login,
+                              (route) => false,
+                            );
+                          },
+                          icon: const Icon(Icons.logout_rounded),
+                          label: const Text('Sair'),
+                        ),
+                        const SizedBox(width: 8),
+                        _AvatarBadge(initials: _initialsFromName(userName)),
                       ],
-                    )
-                  else ...[
-                    const _HeroCard(),
-                    const SizedBox(height: 14),
-                    const _HeroIndicator(),
-                    const SizedBox(height: 18),
+                    ),
+                    const SizedBox(height: 10),
                     Text(
-                      'Acoes Rapidas',
+                      'Ola, $userName!',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Seu painel inicial para descobrir, avaliar e recomendar.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.textMuted,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    if (useWideLayout)
+                      const Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(flex: 8, child: _HeroCard()),
+                          SizedBox(width: 20),
+                          Expanded(flex: 4, child: _QuickActionsPanel()),
+                        ],
+                      )
+                    else ...[
+                      const _HeroCard(),
+                      const SizedBox(height: 14),
+                      const _HeroIndicator(),
+                      const SizedBox(height: 18),
+                      Text(
+                        'Acoes Rapidas',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.headlineSmall?.copyWith(fontSize: 20),
+                      ),
+                      const SizedBox(height: 12),
+                      const _QuickActionGrid(),
+                    ],
+                    const SizedBox(height: 24),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        OutlinedButton.icon(
+                          key: const Key('go-to-places-button'),
+                          onPressed: () {
+                            Navigator.of(context).pushNamed(AppRoutes.places);
+                          },
+                          icon: const Icon(Icons.place_outlined),
+                          label: const Text('Locais'),
+                        ),
+                        OutlinedButton.icon(
+                          key: const Key('go-to-reviews-button'),
+                          onPressed: () {
+                            Navigator.of(context).pushNamed(AppRoutes.reviews);
+                          },
+                          icon: const Icon(Icons.rate_review_outlined),
+                          label: const Text('Avaliacoes'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Explorar Categorias',
                       style: Theme.of(
                         context,
                       ).textTheme.headlineSmall?.copyWith(fontSize: 20),
                     ),
                     const SizedBox(height: 12),
-                    const _QuickActionGrid(),
+                    const SizedBox(height: 130, child: _CategoryScroller()),
                   ],
-                  const SizedBox(height: 24),
-                  Text(
-                    'Explorar Categorias',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.headlineSmall?.copyWith(fontSize: 20),
-                  ),
-                  const SizedBox(height: 12),
-                  const SizedBox(height: 130, child: _CategoryScroller()),
-                ],
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
