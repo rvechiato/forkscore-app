@@ -170,13 +170,13 @@ class _LoginFormCard extends StatelessWidget {
         decoration: useCard
             ? BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(28),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppTheme.inputBorder),
                 boxShadow: const [
                   BoxShadow(
-                    color: Color(0x10000000),
-                    blurRadius: 22,
-                    offset: Offset(0, 14),
+                    color: Color(0x06000000),
+                    blurRadius: 20,
+                    offset: Offset(0, 8),
                   ),
                 ],
               )
@@ -193,7 +193,9 @@ class _LoginFormCard extends StatelessWidget {
               Text(
                 'ForkScore',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.displaySmall,
+                style: Theme.of(
+                  context,
+                ).textTheme.headlineLarge?.copyWith(letterSpacing: -0.3),
               ),
               const SizedBox(height: 12),
               Text(
@@ -201,7 +203,7 @@ class _LoginFormCard extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: Theme.of(
                   context,
-                ).textTheme.bodyMedium?.copyWith(color: AppTheme.textMuted),
+                ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
               ),
               const SizedBox(height: 40),
               ForkScoreTextField(
@@ -249,8 +251,7 @@ class _LoginFormCard extends StatelessWidget {
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     decoration: TextDecoration.underline,
                     decorationColor: AppTheme.inputBorderDark,
-                    decorationThickness: 1,
-                    color: AppTheme.charcoal,
+                    color: AppTheme.textSecondary,
                   ),
                 ),
               ),
@@ -263,8 +264,8 @@ class _LoginFormCard extends StatelessWidget {
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                     decoration: TextDecoration.underline,
-                    decorationColor: AppTheme.charcoal,
-                    color: AppTheme.charcoal,
+                    decorationColor: AppTheme.textPrimary,
+                    color: AppTheme.textPrimary,
                   ),
                 ),
               ),
@@ -287,12 +288,8 @@ class _AuthBrandPanel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(40),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(32),
-        gradient: const LinearGradient(
-          colors: [Color(0xFFF6E8E1), Color(0xFFE9EFE8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppTheme.accentGreen.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -307,14 +304,14 @@ class _AuthBrandPanel extends StatelessWidget {
             title,
             style: Theme.of(
               context,
-            ).textTheme.headlineLarge?.copyWith(fontSize: 54, height: 0.95),
+            ).textTheme.headlineLarge?.copyWith(fontSize: 44, height: 1.05),
           ),
           const SizedBox(height: 18),
           Text(
             description,
             style: Theme.of(
               context,
-            ).textTheme.bodyLarge?.copyWith(color: AppTheme.textMuted),
+            ).textTheme.bodyLarge?.copyWith(color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 28),
           Wrap(
@@ -349,13 +346,14 @@ class _BrandBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(999),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.inputBorder, width: 1.0),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18, color: AppTheme.terracotta),
+          Icon(icon, size: 18, color: AppTheme.primaryBrand),
           const SizedBox(width: 8),
           Text(label, style: Theme.of(context).textTheme.bodyMedium),
         ],

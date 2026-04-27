@@ -8,22 +8,11 @@ abstract final class AppRoutes {
   static const places = '/places';
   static const reviews = '/reviews';
 
-  static const publicRoutes = <String>{
-    login,
-    register,
-  };
+  static const publicRoutes = <String>{login, register};
 
-  static const protectedRoutes = <String>{
-    home,
-    profile,
-    places,
-    reviews,
-  };
+  static const protectedRoutes = <String>{home, profile, places, reviews};
 
-  static const all = <String>{
-    ...publicRoutes,
-    ...protectedRoutes,
-  };
+  static const all = <String>{...publicRoutes, ...protectedRoutes};
 }
 
 class LoginRouteArgs {

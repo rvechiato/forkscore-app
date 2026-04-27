@@ -1,4 +1,6 @@
 import 'place_author.dart';
+import 'place_category.dart';
+import 'place_subcategory.dart';
 
 class PlaceDetail {
   const PlaceDetail({
@@ -8,6 +10,8 @@ class PlaceDetail {
     required this.number,
     required this.neighborhood,
     required this.city,
+    required this.category,
+    required this.subcategory,
     required this.createdBy,
   });
 
@@ -17,5 +21,7 @@ class PlaceDetail {
   final String number;
   final String neighborhood;
   final String city;
+  final PlaceCategory category;
+  final PlaceSubcategory subcategory;
   final PlaceAuthor createdBy;
 }

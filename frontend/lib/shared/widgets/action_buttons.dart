@@ -1,43 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_theme.dart';
-
-class ForkScoreActionButton extends StatelessWidget {
-  const ForkScoreActionButton({
-    super.key,
-    required this.label,
-    required this.backgroundColor,
-    this.onPressed,
-    this.foregroundColor = Colors.white,
-  });
-
-  final String label;
-  final Color backgroundColor;
-  final VoidCallback? onPressed;
-  final Color foregroundColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          elevation: 2,
-          backgroundColor: backgroundColor,
-          foregroundColor: foregroundColor,
-          shadowColor: Colors.black.withValues(alpha: 0.12),
-          minimumSize: const Size.fromHeight(56),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-        ),
-        child: Text(label),
-      ),
-    );
-  }
-}
-
 class PrimaryActionButton extends StatelessWidget {
   const PrimaryActionButton({super.key, required this.label, this.onPressed});
 
@@ -46,10 +8,16 @@ class PrimaryActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ForkScoreActionButton(
-      label: label,
-      backgroundColor: AppTheme.terracotta,
-      onPressed: onPressed,
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(56)),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        ),
+      ),
     );
   }
 }
@@ -62,10 +30,16 @@ class SecondaryActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ForkScoreActionButton(
-      label: label,
-      backgroundColor: AppTheme.moss,
-      onPressed: onPressed,
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(56)),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        ),
+      ),
     );
   }
 }

@@ -27,7 +27,7 @@ class AuthDeviceFrame extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 1280),
           child: Container(
             decoration: BoxDecoration(
-              color: AppTheme.cream,
+              color: AppTheme.background,
               borderRadius: BorderRadius.circular(32),
               boxShadow: const [
                 BoxShadow(
@@ -52,7 +52,7 @@ class AuthDeviceFrame extends StatelessWidget {
       );
     }
 
-    return ColoredBox(color: AppTheme.cream, child: child);
+    return ColoredBox(color: AppTheme.background, child: child);
   }
 }
 

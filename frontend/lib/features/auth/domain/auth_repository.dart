@@ -8,14 +8,9 @@ abstract class AuthRepository {
     required String password,
   });
 
-  Future<AuthSession> login({
-    required String email,
-    required String password,
-  });
+  Future<AuthSession> login({required String email, required String password});
 
-  Future<AuthUser> getMyProfile({
-    required String accessToken,
-  });
+  Future<AuthUser> getMyProfile({required String accessToken});
 
   Future<AuthUser> updateMyProfile({
     required String accessToken,

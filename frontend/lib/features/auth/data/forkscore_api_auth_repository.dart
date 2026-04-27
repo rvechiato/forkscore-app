@@ -24,11 +24,7 @@ class ForkScoreApiAuthRepository implements AuthRepository {
     final response = await _client.post(
       _resolve('/auth/register'),
       headers: _jsonHeaders,
-      body: jsonEncode({
-        'name': name,
-        'email': email,
-        'password': password,
-      }),
+      body: jsonEncode({'name': name, 'email': email, 'password': password}),
     );
 
     return _parseSession(response);
@@ -42,19 +38,14 @@ class ForkScoreApiAuthRepository implements AuthRepository {
     final response = await _client.post(
       _resolve('/auth/login'),
       headers: _jsonHeaders,
-      body: jsonEncode({
-        'email': email,
-        'password': password,
-      }),
+      body: jsonEncode({'email': email, 'password': password}),
     );
 
     return _parseSession(response);
   }
 
   @override
-  Future<AuthUser> getMyProfile({
-    required String accessToken,
-  }) async {
+  Future<AuthUser> getMyProfile({required String accessToken}) async {
     final response = await _client.get(
       _resolve('/me'),
       headers: _authorizedHeaders(accessToken),
@@ -116,7 +107,9 @@ class ForkScoreApiAuthRepository implements AuthRepository {
     return AuthUser(
       id: payload['id'] as String,
       name: payload['name'] as String,
-      birthDate: birthDateValue is String ? DateTime.parse(birthDateValue) : null,
+      birthDate: birthDateValue is String
+          ? DateTime.parse(birthDateValue)
+          : null,
       age: ageValue is int ? ageValue : null,
       email: payload['email'] as String,
     );

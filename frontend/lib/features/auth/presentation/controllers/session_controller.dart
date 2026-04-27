@@ -6,9 +6,8 @@ import '../../domain/models/auth_session.dart';
 import '../../domain/models/auth_user.dart';
 
 class SessionController extends ChangeNotifier {
-  SessionController({
-    required AuthRepository repository,
-  }) : _repository = repository;
+  SessionController({required AuthRepository repository})
+    : _repository = repository;
 
   final AuthRepository _repository;
 
@@ -36,15 +35,9 @@ class SessionController extends ChangeNotifier {
     });
   }
 
-  Future<void> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> login({required String email, required String password}) async {
     await _run(() async {
-      _session = await _repository.login(
-        email: email,
-        password: password,
-      );
+      _session = await _repository.login(email: email, password: password);
     });
   }
 

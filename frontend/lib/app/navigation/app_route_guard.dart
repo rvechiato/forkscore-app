@@ -27,7 +27,9 @@ class _AppRouteGuardState extends State<AppRouteGuard> {
   @override
   Widget build(BuildContext context) {
     final sessionController = SessionScope.of(context);
-    final redirectTarget = _redirectTargetFor(sessionController.isAuthenticated);
+    final redirectTarget = _redirectTargetFor(
+      sessionController.isAuthenticated,
+    );
 
     if (redirectTarget == null) {
       _scheduledRedirect = null;
@@ -84,10 +86,7 @@ class _AppRouteGuardState extends State<AppRouteGuard> {
 }
 
 class _RedirectTarget {
-  const _RedirectTarget({
-    required this.routeName,
-    required this.arguments,
-  });
+  const _RedirectTarget({required this.routeName, required this.arguments});
 
   final String routeName;
   final Object? arguments;

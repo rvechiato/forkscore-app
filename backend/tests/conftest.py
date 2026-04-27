@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from src.modules.auth.infra.database import models as auth_models  # noqa: F401
+from src.modules.places.infra.database.bootstrap import seed_places_taxonomy
 from src.modules.places.infra.database import models as place_models  # noqa: F401
 from src.modules.users.infra.database import models as user_models  # noqa: F401
 from src.main import app
@@ -29,6 +30,7 @@ def db_session() -> Generator[Session, None, None]:
     )
     Base.metadata.create_all(bind=engine)
     session = TestingSessionLocal()
+    seed_places_taxonomy(session)
     try:
         yield session
     finally:

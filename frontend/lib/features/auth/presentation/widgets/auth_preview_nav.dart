@@ -77,9 +77,11 @@ class _PreviewNavButton extends StatelessWidget {
       child: TextButton(
         onPressed: onTap,
         style: TextButton.styleFrom(
-          foregroundColor: active ? AppTheme.terracotta : AppTheme.charcoal,
+          foregroundColor: active
+              ? AppTheme.primaryBrand
+              : AppTheme.textPrimary,
           backgroundColor: active && compact
-              ? AppTheme.terracotta.withValues(alpha: 0.08)
+              ? AppTheme.primaryBrand.withValues(alpha: 0.08)
               : null,
           padding: EdgeInsets.symmetric(
             horizontal: compact ? 10 : 12,

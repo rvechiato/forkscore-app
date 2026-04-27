@@ -11,11 +11,7 @@ class _IoHttpClient implements SimpleHttpClient {
     Uri uri, {
     Map<String, String> headers = const {},
   }) {
-    return _send(
-      method: 'GET',
-      uri: uri,
-      headers: headers,
-    );
+    return _send(method: 'GET', uri: uri, headers: headers);
   }
 
   @override
@@ -24,12 +20,7 @@ class _IoHttpClient implements SimpleHttpClient {
     Map<String, String> headers = const {},
     String? body,
   }) {
-    return _send(
-      method: 'POST',
-      uri: uri,
-      headers: headers,
-      body: body,
-    );
+    return _send(method: 'POST', uri: uri, headers: headers, body: body);
   }
 
   @override
@@ -38,12 +29,7 @@ class _IoHttpClient implements SimpleHttpClient {
     Map<String, String> headers = const {},
     String? body,
   }) {
-    return _send(
-      method: 'PUT',
-      uri: uri,
-      headers: headers,
-      body: body,
-    );
+    return _send(method: 'PUT', uri: uri, headers: headers, body: body);
   }
 
   Future<HttpResponseData> _send({

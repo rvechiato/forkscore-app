@@ -20,6 +20,8 @@ class SqlAlchemyPlaceRepository(PlaceRepository):
             number=place.number,
             neighborhood=place.neighborhood,
             city=place.city,
+            category_id=str(place.category_id),
+            subcategory_id=str(place.subcategory_id),
             created_by_user_id=place.created_by_user_id,
             created_at=place.created_at,
             updated_at=place.updated_at,

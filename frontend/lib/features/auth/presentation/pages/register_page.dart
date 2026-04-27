@@ -56,7 +56,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   ? Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(child: _RegisterIntroPanel(onBack: _goToLogin)),
+                        Expanded(
+                          child: _RegisterIntroPanel(onBack: _goToLogin),
+                        ),
                         const SizedBox(width: 56),
                         Expanded(
                           child: _RegisterFormCard(
@@ -165,9 +167,7 @@ class _RegisterPageState extends State<RegisterPage> {
   void _goToLogin() {
     Navigator.of(context).pushReplacementNamed(
       AppRoutes.login,
-      arguments: LoginRouteArgs(
-        redirectAfterLogin: widget.redirectAfterAuth,
-      ),
+      arguments: LoginRouteArgs(redirectAfterLogin: widget.redirectAfterAuth),
     );
   }
 }
@@ -182,8 +182,8 @@ class _RegisterIntroPanel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(40),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5EF),
-        borderRadius: BorderRadius.circular(32),
+        color: AppTheme.accentYellow.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,14 +199,14 @@ class _RegisterIntroPanel extends StatelessWidget {
             'Crie sua conta e comece a recomendar lugares incriveis.',
             style: Theme.of(
               context,
-            ).textTheme.headlineLarge?.copyWith(fontSize: 50, height: 0.96),
+            ).textTheme.headlineLarge?.copyWith(fontSize: 38, height: 1.1),
           ),
           const SizedBox(height: 18),
           Text(
             'A mesma identidade visual e os mesmos componentes continuam aqui, agora organizados para uma experiencia web mais ampla.',
             style: Theme.of(
               context,
-            ).textTheme.bodyLarge?.copyWith(color: AppTheme.textMuted),
+            ).textTheme.bodyLarge?.copyWith(color: AppTheme.textSecondary),
           ),
         ],
       ),
@@ -253,13 +253,13 @@ class _RegisterFormCard extends StatelessWidget {
         decoration: useCard
             ? BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(28),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppTheme.inputBorder),
                 boxShadow: const [
                   BoxShadow(
-                    color: Color(0x10000000),
-                    blurRadius: 22,
-                    offset: Offset(0, 14),
+                    color: Color(0x06000000),
+                    blurRadius: 20,
+                    offset: Offset(0, 8),
                   ),
                 ],
               )
@@ -294,54 +294,43 @@ class _RegisterFormCard extends StatelessWidget {
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
               const SizedBox(height: 24),
-              _FieldLabel(
-                text: 'Nome Completo',
-                child: ForkScoreTextField(
-                  key: const Key('register-name-field'),
-                  controller: nameController,
-                  hintText: 'Seu nome',
-                ),
+              ForkScoreTextField(
+                key: const Key('register-name-field'),
+                controller: nameController,
+                label: 'Nome Completo',
+                hintText: 'Seu nome',
               ),
               const SizedBox(height: 14),
-              _FieldLabel(
-                text: 'Email',
-                child: ForkScoreTextField(
-                  key: const Key('register-email-field'),
-                  controller: emailController,
-                  hintText: 'seunome@email.com',
-                  keyboardType: TextInputType.emailAddress,
-                ),
+              ForkScoreTextField(
+                key: const Key('register-email-field'),
+                controller: emailController,
+                label: 'Email',
+                hintText: 'seunome@email.com',
+                keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 14),
-              _FieldLabel(
-                text: 'Data de Nascimento',
-                child: ForkScoreTextField(
-                  key: const Key('register-birth-date-field'),
-                  controller: birthDateController,
-                  hintText: 'dd/mm/aaaa',
-                  suffixIcon: const Icon(
-                    Icons.calendar_today_outlined,
-                    size: 18,
-                  ),
-                  keyboardType: TextInputType.datetime,
-                ),
+              ForkScoreTextField(
+                key: const Key('register-birth-date-field'),
+                controller: birthDateController,
+                label: 'Data de Nascimento',
+                hintText: 'dd/mm/aaaa',
+                suffixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
+                keyboardType: TextInputType.datetime,
               ),
               const SizedBox(height: 14),
-              _FieldLabel(
-                text: 'Senha',
-                child: ForkScoreTextField(
-                  key: const Key('register-password-field'),
-                  controller: passwordController,
-                  hintText: 'Senha',
-                  obscureText: obscurePassword,
-                  suffixIcon: IconButton(
-                    onPressed: onTogglePassword,
-                    icon: Icon(
-                      obscurePassword
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined,
-                      size: 20,
-                    ),
+              ForkScoreTextField(
+                key: const Key('register-password-field'),
+                controller: passwordController,
+                label: 'Senha',
+                hintText: 'Senha',
+                obscureText: obscurePassword,
+                suffixIcon: IconButton(
+                  onPressed: onTogglePassword,
+                  icon: Icon(
+                    obscurePassword
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                    size: 20,
                   ),
                 ),
               ),
@@ -349,6 +338,7 @@ class _RegisterFormCard extends StatelessWidget {
               ForkScoreTextField(
                 key: const Key('register-confirm-password-field'),
                 controller: confirmPasswordController,
+                label: 'Confirmar Senha',
                 hintText: 'Confirmar Senha',
                 obscureText: obscureConfirmPassword,
                 suffixIcon: IconButton(
@@ -384,8 +374,8 @@ class _RegisterFormCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                         decoration: TextDecoration.underline,
-                        decorationColor: AppTheme.charcoal,
-                        color: AppTheme.charcoal,
+                        decorationColor: AppTheme.textPrimary,
+                        color: AppTheme.textPrimary,
                       ),
                     ),
                   ),
@@ -395,32 +385,6 @@ class _RegisterFormCard extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _FieldLabel extends StatelessWidget {
-  const _FieldLabel({required this.text, required this.child});
-
-  final String text;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 2, bottom: 6),
-          child: Text(
-            text,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
-          ),
-        ),
-        child,
-      ],
     );
   }
 }
