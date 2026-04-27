@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/auth_scope.dart';
+import '../../../../app/navigation/app_routes.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/widgets/action_buttons.dart';
 import '../../../../shared/widgets/forkscore_logo.dart';
 import '../../../../shared/widgets/forkscore_text_field.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({
-    super.key,
-    required this.onEnter,
-    required this.onCreateAccount,
-  });
+  const LoginPage({super.key, this.redirectAfterLogin});
 
-  final VoidCallback onEnter;
-  final VoidCallback onCreateAccount;
+  final String? redirectAfterLogin;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -33,6 +30,8 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final sessionController = SessionScope.of(context);
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final useWideLayout = constraints.maxWidth >= 900;
@@ -71,7 +70,8 @@ class _LoginPageState extends State<LoginPage> {
                                 setState(() => _obscure = !_obscure);
                               },
                               onSubmit: _submit,
-                              onCreateAccount: widget.onCreateAccount,
+                              onCreateAccount: _goToRegister,
+                              isBusy: sessionController.isBusy,
                             ),
                           ),
                         ),
@@ -85,7 +85,8 @@ class _LoginPageState extends State<LoginPage> {
                         setState(() => _obscure = !_obscure);
                       },
                       onSubmit: _submit,
-                      onCreateAccount: widget.onCreateAccount,
+                      onCreateAccount: _goToRegister,
+                      isBusy: sessionController.isBusy,
                     ),
             ),
           ),
@@ -94,7 +95,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (_emailController.text.trim().isEmpty ||
         _passwordController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -103,7 +104,40 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    widget.onEnter();
+    final sessionController = SessionScope.of(context, listen: false);
+    await sessionController.login(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (!sessionController.isAuthenticated) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            sessionController.errorMessage ?? 'Nao foi possivel entrar agora.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      widget.redirectAfterLogin ?? AppRoutes.home,
+      (route) => false,
+    );
+  }
+
+  void _goToRegister() {
+    Navigator.of(context).pushReplacementNamed(
+      AppRoutes.register,
+      arguments: RegisterRouteArgs(
+        redirectAfterAuth: widget.redirectAfterLogin,
+      ),
+    );
   }
 }
 
@@ -115,14 +149,16 @@ class _LoginFormCard extends StatelessWidget {
     required this.onToggleObscure,
     required this.onSubmit,
     required this.onCreateAccount,
+    required this.isBusy,
   });
 
   final TextEditingController emailController;
   final TextEditingController passwordController;
   final bool obscure;
   final VoidCallback onToggleObscure;
-  final VoidCallback onSubmit;
+  final Future<void> Function() onSubmit;
   final VoidCallback onCreateAccount;
+  final bool isBusy;
 
   @override
   Widget build(BuildContext context) {
@@ -193,7 +229,10 @@ class _LoginFormCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              PrimaryActionButton(label: 'Entrar', onPressed: onSubmit),
+              PrimaryActionButton(
+                label: isBusy ? 'Entrando...' : 'Entrar',
+                onPressed: isBusy ? null : () => onSubmit(),
+              ),
               const SizedBox(height: 28),
               TextButton(
                 onPressed: () {

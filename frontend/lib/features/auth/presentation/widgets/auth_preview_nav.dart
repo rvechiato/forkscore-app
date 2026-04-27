@@ -51,12 +51,6 @@ class AuthPreviewNav extends StatelessWidget {
             compact: compact,
             onTap: () => onSelect(AuthFlowScreen.register),
           ),
-          _PreviewNavButton(
-            label: 'Home',
-            active: current == AuthFlowScreen.home,
-            compact: compact,
-            onTap: () => onSelect(AuthFlowScreen.home),
-          ),
         ],
       ),
     );
