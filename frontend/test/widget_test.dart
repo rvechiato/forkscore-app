@@ -161,4 +161,71 @@ void main() {
     expect(find.byKey(const Key('create-place-name-field')), findsOneWidget);
     expect(find.byKey(const Key('submit-new-establishment')), findsOneWidget);
   });
+
+  testWidgets('cria uma review completa a partir da rota protegida', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 2200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(const ForkScoreApp(initialRoute: AppRoutes.reviews));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const Key('login-email-field')),
+      'chef@example.com',
+    );
+    await tester.enterText(
+      find.byKey(const Key('login-password-field')),
+      'super-secret-123',
+    );
+    await tester.tap(find.text('Entrar'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('start-review-button')), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('start-review-button')));
+    await tester.tap(find.byKey(const Key('start-review-button')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('criterion-rating-taste-5')));
+    await tester.enterText(
+      find.byKey(const Key('criterion-comment-taste')),
+      'Prato marcante e bem executado.',
+    );
+
+    await tester.tap(find.byKey(const Key('criterion-rating-service-4')));
+    await tester.enterText(
+      find.byKey(const Key('criterion-comment-service')),
+      'Equipe atenciosa e agil.',
+    );
+
+    await tester.tap(find.byKey(const Key('criterion-rating-options-2')));
+    await tester.enterText(
+      find.byKey(const Key('criterion-comment-options')),
+      'Poucas alternativas no cardapio.',
+    );
+    await tester.enterText(
+      find.byKey(const Key('criterion-justification-options')),
+      'Faltaram opcoes vegetarianas e sem lactose.',
+    );
+
+    await tester.tap(find.byKey(const Key('criterion-rating-infrastructure-3')));
+    await tester.enterText(
+      find.byKey(const Key('criterion-comment-infrastructure')),
+      'Ambiente confortavel e limpo.',
+    );
+
+    await tester.ensureVisible(find.byKey(const Key('cost-benefit-rating-4')));
+    await tester.tap(find.byKey(const Key('cost-benefit-rating-4')));
+    await tester.ensureVisible(find.text('Sim, recomendaria'));
+    await tester.tap(find.text('Sim, recomendaria'));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byKey(const Key('review-submit-button')));
+    await tester.tap(find.byKey(const Key('review-submit-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('review-success-card')), findsOneWidget);
+    expect(find.text('Avaliacao enviada'), findsOneWidget);
+  });
 }
