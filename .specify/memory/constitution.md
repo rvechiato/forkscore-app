@@ -258,6 +258,8 @@ Este documento serve como **fundação imutável** para decisões técnicas futu
 - ✅ Avaliação completável em < 1 minuto
 - ✅ Estado management centralizador (Provider, Riverpod, ou similar)
 - ✅ Não fazer requisições diretas a BD; sempre via API Backend
+- ✅ Copy de layout deve ser orientada à ação do usuário e ao produto, nunca a descrições técnicas, estruturais ou metaexplicações sobre o próprio fluxo/tela
+- ✅ Evitar textos auxiliares desnecessários em áreas principais da interface; quando houver copy, ela deve ser curta, clara e útil para a tarefa imediata
 - ✅ Testes: widget + integração
 - ✅ Navegação centralizada em rotas nomeadas, sem fluxo crítico escondido em estado local de tela
 - ✅ Classificação explícita de rotas públicas e protegidas
