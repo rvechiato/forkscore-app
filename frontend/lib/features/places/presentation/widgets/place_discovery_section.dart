@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../shared/theme/app_theme.dart';
+import '../../../reviews/domain/reviews_repository.dart';
+import '../../../reviews/presentation/widgets/place_review_summary_section.dart';
 import '../../domain/models/place_detail.dart';
 import '../../domain/models/place_summary.dart';
 import '../../domain/places_repository.dart';
@@ -12,6 +14,7 @@ class PlacesDiscoverySection extends StatefulWidget {
     super.key,
     this.controller,
     this.repository,
+    this.reviewsRepository,
     this.accessTokenProvider,
     this.onReviewPlaceSelected,
     required this.currentUserName,
@@ -24,13 +27,17 @@ class PlacesDiscoverySection extends StatefulWidget {
     this.contentPadding = EdgeInsets.zero,
     this.showHeroDivider = true,
   }) : assert(
-         controller != null ||
-             (repository != null && accessTokenProvider != null),
-         'Provide a controller or both repository and accessTokenProvider.',
+         reviewsRepository != null && accessTokenProvider != null,
+         'Provide reviewsRepository and accessTokenProvider.',
+       ),
+       assert(
+         controller != null || repository != null,
+         'Provide a controller or repository for places.',
        );
 
   final PlacesController? controller;
   final PlacesRepository? repository;
+  final ReviewsRepository? reviewsRepository;
   final String? Function()? accessTokenProvider;
   final ValueChanged<PlaceDetail>? onReviewPlaceSelected;
   final String currentUserName;
@@ -123,6 +130,8 @@ class _PlacesDiscoverySectionState extends State<PlacesDiscoverySection> {
                     place: _controller.selectedPlace,
                     loading: _controller.isLoadingDetail,
                     currentUserName: widget.currentUserName,
+                    reviewsRepository: widget.reviewsRepository!,
+                    accessTokenProvider: widget.accessTokenProvider!,
                     onReviewPlaceSelected: widget.onReviewPlaceSelected,
                   );
 
@@ -684,12 +693,16 @@ class _PlacesDetailCard extends StatelessWidget {
     required this.place,
     required this.loading,
     required this.currentUserName,
+    required this.reviewsRepository,
+    required this.accessTokenProvider,
     required this.onReviewPlaceSelected,
   });
 
   final PlaceDetail? place;
   final bool loading;
   final String currentUserName;
+  final ReviewsRepository reviewsRepository;
+  final String? Function() accessTokenProvider;
   final ValueChanged<PlaceDetail>? onReviewPlaceSelected;
 
   @override
@@ -859,6 +872,13 @@ class _PlacesDetailCard extends StatelessWidget {
               ),
             ],
           ),
+        ),
+        const SizedBox(height: 16),
+        PlaceReviewSummarySection(
+          key: ValueKey('place-review-summary-${place!.id}'),
+          placeId: place!.id,
+          repository: reviewsRepository,
+          accessTokenProvider: accessTokenProvider,
         ),
         if (onReviewPlaceSelected != null) ...[
           const SizedBox(height: 16),

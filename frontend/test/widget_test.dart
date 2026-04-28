@@ -3,6 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:forkscore_frontend/app/app.dart';
 import 'package:forkscore_frontend/app/navigation/app_routes.dart';
+import 'package:forkscore_frontend/features/places/data/mock_places_repository.dart';
+import 'package:forkscore_frontend/features/reviews/domain/models/place_review_summary.dart';
+import 'package:forkscore_frontend/features/reviews/domain/models/review_submission_request.dart';
+import 'package:forkscore_frontend/features/reviews/domain/models/submitted_review.dart';
+import 'package:forkscore_frontend/features/reviews/domain/reviews_repository.dart';
 
 void main() {
   testWidgets('renderiza a tela de login inicial', (WidgetTester tester) async {
@@ -228,4 +233,111 @@ void main() {
     expect(find.byKey(const Key('review-success-card')), findsOneWidget);
     expect(find.text('Avaliacao enviada'), findsOneWidget);
   });
+
+  testWidgets('home autenticada mostra resumo de reviews no detalhe do local', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const ForkScoreApp());
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const Key('login-email-field')),
+      'chef@example.com',
+    );
+    await tester.enterText(
+      find.byKey(const Key('login-password-field')),
+      'super-secret-123',
+    );
+    await tester.tap(find.text('Entrar'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('place-review-summary-content')), findsOneWidget);
+    expect(find.text('Reviews do local'), findsOneWidget);
+    expect(find.text('4.3'), findsOneWidget);
+    expect(find.textContaining('2 reviews registradas'), findsOneWidget);
+    expect(find.byKey(const Key('place-review-item-rev_1')), findsOneWidget);
+    expect(find.byKey(const Key('start-review-button')), findsOneWidget);
+  });
+
+  testWidgets('detalhe do local mostra estado vazio de reviews quando necessario', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const ForkScoreApp());
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const Key('login-email-field')),
+      'chef@example.com',
+    );
+    await tester.enterText(
+      find.byKey(const Key('login-password-field')),
+      'super-secret-123',
+    );
+    await tester.tap(find.text('Entrar'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byKey(const Key('place-search-result-place-2')));
+    await tester.tap(find.byKey(const Key('place-search-result-place-2')));
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('place-review-summary-empty')), findsOneWidget);
+    expect(
+      find.text('Ainda nao existem reviews para este local.'),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('start-review-button')), findsOneWidget);
+  });
+
+  testWidgets('detalhe do local mostra erro de reviews sem quebrar CTA', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      ForkScoreApp(
+        placesRepository: MockPlacesRepository(),
+        reviewsRepository: _FailingReviewsRepository(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const Key('login-email-field')),
+      'chef@example.com',
+    );
+    await tester.enterText(
+      find.byKey(const Key('login-password-field')),
+      'super-secret-123',
+    );
+    await tester.tap(find.text('Entrar'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('place-review-summary-error')), findsOneWidget);
+    expect(find.text('Falha ao carregar reviews.'), findsOneWidget);
+    expect(find.byKey(const Key('start-review-button')), findsOneWidget);
+  });
+}
+
+class _FailingReviewsRepository implements ReviewsRepository {
+  @override
+  Future<PlaceReviewSummary> getPlaceReviewSummary({
+    required String accessToken,
+    required String placeId,
+  }) {
+    throw ReviewsRepositoryException('Falha ao carregar reviews.');
+  }
+
+  @override
+  Future<SubmittedReview> submitReview({
+    required String accessToken,
+    required String placeId,
+    required ReviewSubmissionRequest request,
+  }) {
+    throw UnimplementedError();
+  }
 }

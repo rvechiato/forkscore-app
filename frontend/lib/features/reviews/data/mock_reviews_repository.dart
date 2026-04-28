@@ -1,13 +1,60 @@
+import '../domain/models/place_review_summary.dart';
+import '../domain/models/recent_place_review.dart';
+import '../domain/models/recent_review_comment.dart';
 import '../domain/models/review_author.dart';
 import '../domain/models/review_criterion.dart';
 import '../domain/models/review_criterion_code.dart';
 import '../domain/models/review_submission_request.dart';
+import '../domain/models/review_recommendation.dart';
 import '../domain/models/submitted_review.dart';
 import '../domain/reviews_repository.dart';
 
 class MockReviewsRepository implements ReviewsRepository {
+  MockReviewsRepository() {
+    _seedReviews();
+  }
+
   final List<SubmittedReview> _submittedReviews = <SubmittedReview>[];
   int _nextId = 1;
+
+  @override
+  Future<PlaceReviewSummary> getPlaceReviewSummary({
+    required String accessToken,
+    required String placeId,
+  }) async {
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+
+    final placeReviews =
+        _submittedReviews
+            .where((review) => review.placeId == placeId)
+            .toList(growable: false)
+          ..sort((left, right) => right.createdAt.compareTo(left.createdAt));
+
+    if (placeReviews.isEmpty) {
+      return PlaceReviewSummary(
+        placeId: placeId,
+        totalReviews: 0,
+        averageRating: null,
+        recentReviews: const [],
+      );
+    }
+
+    final averageRating =
+        placeReviews
+            .map(_overallRatingFor)
+            .reduce((left, right) => left + right) /
+        placeReviews.length;
+
+    return PlaceReviewSummary(
+      placeId: placeId,
+      totalReviews: placeReviews.length,
+      averageRating: _roundToSingleDecimal(averageRating),
+      recentReviews: placeReviews
+          .take(3)
+          .map(_mapRecentReview)
+          .toList(growable: false),
+    );
+  }
 
   @override
   Future<SubmittedReview> submitReview({
@@ -81,7 +128,8 @@ class MockReviewsRepository implements ReviewsRepository {
     }
 
     final justification = criterion.justification?.trim();
-    if (criterion.rating < 3 && (justification == null || justification.isEmpty)) {
+    if (criterion.rating < 3 &&
+        (justification == null || justification.isEmpty)) {
       throw ReviewsRepositoryException(
         'Justificativa obrigatoria quando ${criterion.code.label} ficar abaixo de 3.',
       );
@@ -101,9 +149,102 @@ class MockReviewsRepository implements ReviewsRepository {
       'user-2': 'Rafa Vecchiato',
     };
 
-    return ReviewAuthor(
-      id: userId,
-      name: knownNames[userId] ?? 'Avaliador',
+    return ReviewAuthor(id: userId, name: knownNames[userId] ?? 'Avaliador');
+  }
+
+  RecentPlaceReview _mapRecentReview(SubmittedReview review) {
+    return RecentPlaceReview(
+      id: review.id,
+      author: review.user,
+      recommendation: review.recommendation,
+      overallRating: _roundToSingleDecimal(_overallRatingFor(review)),
+      createdAt: review.createdAt,
+      comments: review.criteria
+          .map(
+            (criterion) => RecentReviewComment(
+              code: criterion.code,
+              rating: criterion.rating,
+              comment: criterion.comment,
+            ),
+          )
+          .toList(growable: false),
     );
+  }
+
+  double _overallRatingFor(SubmittedReview review) {
+    final criteriaTotal = review.criteria.fold<int>(
+      0,
+      (sum, criterion) => sum + criterion.rating,
+    );
+    return (criteriaTotal + review.costBenefitRating) / 5;
+  }
+
+  double _roundToSingleDecimal(double value) {
+    return (value * 10).roundToDouble() / 10;
+  }
+
+  void _seedReviews() {
+    _submittedReviews.addAll(<SubmittedReview>[
+      SubmittedReview(
+        id: 'rev_${_nextId++}',
+        placeId: 'place-1',
+        user: const ReviewAuthor(id: 'user-2', name: 'Rafa Vecchiato'),
+        recommendation: ReviewRecommendation.recommended,
+        costBenefitRating: 4,
+        criteria: const [
+          ReviewCriterion(
+            code: ReviewCriterionCode.taste,
+            rating: 5,
+            comment: 'Cafe equilibrado e bem extraido.',
+          ),
+          ReviewCriterion(
+            code: ReviewCriterionCode.service,
+            rating: 4,
+            comment: 'Atendimento agil no balcao.',
+          ),
+          ReviewCriterion(
+            code: ReviewCriterionCode.options,
+            rating: 4,
+            comment: 'Boas opcoes de graos e acompanhamentos.',
+          ),
+          ReviewCriterion(
+            code: ReviewCriterionCode.infrastructure,
+            rating: 4,
+            comment: 'Sala compacta, mas confortavel para uma pausa curta.',
+          ),
+        ],
+        createdAt: DateTime.utc(2026, 4, 27, 14, 30),
+      ),
+      SubmittedReview(
+        id: 'rev_${_nextId++}',
+        placeId: 'place-1',
+        user: const ReviewAuthor(id: 'user-1', name: 'Gastronomo'),
+        recommendation: ReviewRecommendation.recommended,
+        costBenefitRating: 5,
+        criteria: const [
+          ReviewCriterion(
+            code: ReviewCriterionCode.taste,
+            rating: 4,
+            comment: 'Doce na medida e boa finalizacao.',
+          ),
+          ReviewCriterion(
+            code: ReviewCriterionCode.service,
+            rating: 5,
+            comment: 'Equipe simpática e proativa.',
+          ),
+          ReviewCriterion(
+            code: ReviewCriterionCode.options,
+            rating: 4,
+            comment: 'Vitrine enxuta, mas com variedade suficiente.',
+          ),
+          ReviewCriterion(
+            code: ReviewCriterionCode.infrastructure,
+            rating: 4,
+            comment: 'Mesas bem distribuidas e ambiente claro.',
+          ),
+        ],
+        createdAt: DateTime.utc(2026, 4, 25, 10, 15),
+      ),
+    ]);
   }
 }

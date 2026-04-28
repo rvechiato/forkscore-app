@@ -3,15 +3,45 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from src.modules.auth.domain.entities.user import User
 from src.modules.auth.presentation.api.dependencies import get_current_user
 from src.modules.places.domain.errors import PlaceNotFoundError
-from src.modules.reviews.application.dtos import CreateReviewInput, ReviewOutput
+from src.modules.reviews.application.dtos import (
+    CreateReviewInput,
+    PlaceReviewsSummaryOutput,
+    ReviewOutput,
+)
 from src.modules.reviews.application.use_cases.create_review import CreateReview
+from src.modules.reviews.application.use_cases.get_place_reviews_summary import (
+    GetPlaceReviewsSummary,
+)
 from src.modules.reviews.domain.errors import ReviewValidationError
 from src.modules.reviews.presentation.api.dependencies import (
     get_create_review_use_case,
+    get_place_reviews_summary_use_case,
 )
 
 
 router = APIRouter(prefix="/places", tags=["reviews"])
+
+
+@router.get(
+    "/{place_id}/reviews/summary",
+    response_model=PlaceReviewsSummaryOutput,
+    status_code=status.HTTP_200_OK,
+    summary="Ler resumo de reviews de um local",
+)
+def get_place_reviews_summary(
+    place_id: str,
+    _: User = Depends(get_current_user),
+    use_case: GetPlaceReviewsSummary = Depends(get_place_reviews_summary_use_case),
+) -> PlaceReviewsSummaryOutput:
+    """Return the MVP review summary for the selected place."""
+
+    try:
+        return use_case.execute(place_id)
+    except PlaceNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
 
 
 @router.post(

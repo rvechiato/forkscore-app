@@ -6,11 +6,17 @@ import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/widgets/forkscore_logo.dart';
 import '../../../places/domain/places_repository.dart';
 import '../../../places/presentation/widgets/place_discovery_section.dart';
+import '../../../reviews/domain/reviews_repository.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, required this.repository});
+  const HomePage({
+    super.key,
+    required this.repository,
+    required this.reviewsRepository,
+  });
 
   final PlacesRepository repository;
+  final ReviewsRepository reviewsRepository;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -61,6 +67,7 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: 32),
                     PlacesDiscoverySection(
                       repository: widget.repository,
+                      reviewsRepository: widget.reviewsRepository,
                       accessTokenProvider: () =>
                           sessionController.session?.accessToken,
                       currentUserName: userName,

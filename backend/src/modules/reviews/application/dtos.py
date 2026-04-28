@@ -69,3 +69,23 @@ class ReviewOutput(BaseModel):
     cost_benefit_rating: int
     criteria: list[ReviewCriterionOutput]
     created_at: datetime
+
+
+class RecentReviewOutput(BaseModel):
+    """Read payload for a recent review in the place detail summary."""
+
+    id: str
+    user: ReviewAuthorOutput
+    recommendation: RecommendationValue
+    overall_rating: float
+    criteria: list[ReviewCriterionOutput]
+    created_at: datetime
+
+
+class PlaceReviewsSummaryOutput(BaseModel):
+    """Read model returned for the place detail review summary."""
+
+    place_id: str
+    total_reviews: int
+    average_rating: float | None
+    recent_reviews: list[RecentReviewOutput]

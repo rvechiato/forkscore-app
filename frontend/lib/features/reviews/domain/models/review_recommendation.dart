@@ -23,11 +23,8 @@ enum ReviewRecommendation {
   static ReviewRecommendation fromApiValue(String value) {
     return ReviewRecommendation.values.firstWhere(
       (item) => item.apiValue == value,
-      orElse: () => throw ArgumentError.value(
-        value,
-        'value',
-        'Recommendation invalida.',
-      ),
+      orElse: () =>
+          throw ArgumentError.value(value, 'value', 'Recommendation invalida.'),
     );
   }
 }

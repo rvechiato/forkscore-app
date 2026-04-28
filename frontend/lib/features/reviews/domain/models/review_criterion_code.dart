@@ -40,11 +40,8 @@ enum ReviewCriterionCode {
   static ReviewCriterionCode fromApiValue(String value) {
     return ReviewCriterionCode.values.firstWhere(
       (item) => item.apiValue == value,
-      orElse: () => throw ArgumentError.value(
-        value,
-        'value',
-        'Criterio invalido.',
-      ),
+      orElse: () =>
+          throw ArgumentError.value(value, 'value', 'Criterio invalido.'),
     );
   }
 }
