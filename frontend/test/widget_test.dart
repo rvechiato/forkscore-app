@@ -3,7 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:forkscore_frontend/app/app.dart';
 import 'package:forkscore_frontend/app/navigation/app_routes.dart';
+import 'package:forkscore_frontend/features/auth/data/mock_auth_repository.dart';
+import 'package:forkscore_frontend/features/auth/presentation/controllers/session_controller.dart';
 import 'package:forkscore_frontend/features/places/data/mock_places_repository.dart';
+import 'package:forkscore_frontend/features/reviews/data/mock_reviews_repository.dart';
 import 'package:forkscore_frontend/features/reviews/domain/models/place_review_summary.dart';
 import 'package:forkscore_frontend/features/reviews/domain/models/review_submission_request.dart';
 import 'package:forkscore_frontend/features/reviews/domain/models/submitted_review.dart';
@@ -11,7 +14,7 @@ import 'package:forkscore_frontend/features/reviews/domain/reviews_repository.da
 
 void main() {
   testWidgets('renderiza a tela de login inicial', (WidgetTester tester) async {
-    await tester.pumpWidget(const ForkScoreApp());
+    await tester.pumpWidget(_buildTestApp());
     await tester.pumpAndSettle();
 
     expect(find.text('ForkScore'), findsOneWidget);
@@ -22,7 +25,7 @@ void main() {
   testWidgets(
     'redireciona rota protegida para login e volta ao destino apos autenticar',
     (WidgetTester tester) async {
-      await tester.pumpWidget(const ForkScoreApp(initialRoute: AppRoutes.home));
+      await tester.pumpWidget(_buildTestApp(initialRoute: AppRoutes.home));
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('login-email-field')), findsOneWidget);
@@ -50,7 +53,7 @@ void main() {
   testWidgets('navega para cadastro, autentica e faz logout', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const ForkScoreApp());
+    await tester.pumpWidget(_buildTestApp());
     await tester.pumpAndSettle();
 
     await tester.ensureVisible(find.byKey(const Key('go-to-register-button')));
@@ -93,7 +96,7 @@ void main() {
   testWidgets('usuario autenticado navega para outra rota interna protegida', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const ForkScoreApp());
+    await tester.pumpWidget(_buildTestApp());
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -117,7 +120,7 @@ void main() {
   testWidgets('home autenticada concentra busca e lista de lugares no MVP', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const ForkScoreApp());
+    await tester.pumpWidget(_buildTestApp());
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -142,7 +145,7 @@ void main() {
   testWidgets('abre o cadastro de lugar a partir da home unificada', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const ForkScoreApp(initialRoute: AppRoutes.home));
+    await tester.pumpWidget(_buildTestApp(initialRoute: AppRoutes.home));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -173,7 +176,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(1440, 2200));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(const ForkScoreApp(initialRoute: AppRoutes.reviews));
+    await tester.pumpWidget(_buildTestApp(initialRoute: AppRoutes.reviews));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -237,7 +240,7 @@ void main() {
   testWidgets('home autenticada mostra resumo de reviews no detalhe do local', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const ForkScoreApp());
+    await tester.pumpWidget(_buildTestApp());
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -264,7 +267,7 @@ void main() {
   testWidgets('detalhe do local mostra estado vazio de reviews quando necessario', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const ForkScoreApp());
+    await tester.pumpWidget(_buildTestApp());
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -297,7 +300,7 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
-      ForkScoreApp(
+      _buildTestApp(
         placesRepository: MockPlacesRepository(),
         reviewsRepository: _FailingReviewsRepository(),
       ),
@@ -321,6 +324,19 @@ void main() {
     expect(find.text('Falha ao carregar reviews.'), findsOneWidget);
     expect(find.byKey(const Key('start-review-button')), findsOneWidget);
   });
+}
+
+ForkScoreApp _buildTestApp({
+  String initialRoute = AppRoutes.login,
+  MockPlacesRepository? placesRepository,
+  ReviewsRepository? reviewsRepository,
+}) {
+  return ForkScoreApp(
+    initialRoute: initialRoute,
+    sessionController: SessionController(repository: MockAuthRepository()),
+    placesRepository: placesRepository ?? MockPlacesRepository(),
+    reviewsRepository: reviewsRepository ?? MockReviewsRepository(),
+  );
 }
 
 class _FailingReviewsRepository implements ReviewsRepository {

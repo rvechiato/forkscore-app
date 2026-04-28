@@ -28,4 +28,29 @@ class AuthUser {
       email: email ?? this.email,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'birth_date': birthDate?.toIso8601String(),
+      'age': age,
+      'email': email,
+    };
+  }
+
+  factory AuthUser.fromJson(Map<String, dynamic> json) {
+    final birthDateValue = json['birth_date'];
+    final ageValue = json['age'];
+
+    return AuthUser(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      birthDate: birthDateValue is String && birthDateValue.isNotEmpty
+          ? DateTime.tryParse(birthDateValue)
+          : null,
+      age: ageValue is int ? ageValue : null,
+      email: json['email'] as String,
+    );
+  }
 }

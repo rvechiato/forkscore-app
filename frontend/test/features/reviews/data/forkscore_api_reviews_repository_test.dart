@@ -16,7 +16,7 @@ void main() {
           return const HttpResponseData(
             statusCode: 200,
             body:
-                '{"place_id":"place-1","total_reviews":2,"average_rating":4.2,"recent_reviews":[{"id":"rev-1","author":{"id":"user-1","name":"Rafa"},"recommendation":"recommended","overall_rating":4.4,"created_at":"2026-04-28T12:00:00Z","comments":[{"code":"taste","rating":5,"comment":"Cafe equilibrado."}]}]}',
+                '{"place_id":"place-1","total_reviews":2,"average_rating":4.2,"recent_reviews":[{"id":"rev-1","user":{"id":"user-1","name":"Rafa"},"recommendation":"recommended","overall_rating":4.4,"created_at":"2026-04-28T12:00:00Z","criteria":[{"code":"taste","rating":5,"comment":"Cafe equilibrado."}]}]}',
           );
         },
       );

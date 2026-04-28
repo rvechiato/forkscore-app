@@ -2,12 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:forkscore_frontend/app/app.dart';
 import 'package:forkscore_frontend/app/navigation/app_routes.dart';
+import 'package:forkscore_frontend/features/auth/data/mock_auth_repository.dart';
+import 'package:forkscore_frontend/features/auth/presentation/controllers/session_controller.dart';
+import 'package:forkscore_frontend/features/places/data/mock_places_repository.dart';
+import 'package:forkscore_frontend/features/reviews/data/mock_reviews_repository.dart';
 
 void main() {
   testWidgets('detalhe lateral mostra reviews sem esconder o CTA', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const ForkScoreApp(initialRoute: AppRoutes.home));
+    await tester.pumpWidget(
+      ForkScoreApp(
+        initialRoute: AppRoutes.home,
+        sessionController: SessionController(repository: MockAuthRepository()),
+        placesRepository: MockPlacesRepository(),
+        reviewsRepository: MockReviewsRepository(),
+      ),
+    );
     await tester.pumpAndSettle();
 
     await tester.enterText(
