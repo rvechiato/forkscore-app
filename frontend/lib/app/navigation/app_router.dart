@@ -6,15 +6,21 @@ import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/places/domain/places_repository.dart';
 import '../../features/places/presentation/pages/places_page.dart';
+import '../../features/reviews/domain/reviews_repository.dart';
+import '../../features/reviews/presentation/pages/reviews_page.dart';
 import 'app_route_guard.dart';
 import 'app_routes.dart';
 import 'protected_placeholder_page.dart';
 
 class AppRouter {
-  AppRouter({required PlacesRepository placesRepository})
-    : _placesRepository = placesRepository;
+  AppRouter({
+    required PlacesRepository placesRepository,
+    required ReviewsRepository reviewsRepository,
+  }) : _placesRepository = placesRepository,
+       _reviewsRepository = reviewsRepository;
 
   final PlacesRepository _placesRepository;
+  final ReviewsRepository _reviewsRepository;
 
   Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final requestedRouteName = settings.name ?? AppRoutes.login;
@@ -72,9 +78,11 @@ class AppRouter {
         key: const ValueKey('places-page'),
         repository: _placesRepository,
       ),
-      AppRoutes.reviews => const ProtectedPlaceholderPage(
-        title: 'Avaliacoes',
-        description: 'Esta rota protege a futura area de avaliacoes pos-login.',
+      AppRoutes.reviews => ReviewsPage(
+        key: const ValueKey('reviews-page'),
+        reviewsRepository: _reviewsRepository,
+        placesRepository: _placesRepository,
+        initialPlace: _reviewsArgs(arguments).initialPlace,
       ),
       _ => AuthShellPage(
         currentScreen: AuthFlowScreen.login,
@@ -91,5 +99,11 @@ class AppRouter {
     return arguments is RegisterRouteArgs
         ? arguments
         : const RegisterRouteArgs();
+  }
+
+  ReviewsRouteArgs _reviewsArgs(Object? arguments) {
+    return arguments is ReviewsRouteArgs
+        ? arguments
+        : const ReviewsRouteArgs();
   }
 }

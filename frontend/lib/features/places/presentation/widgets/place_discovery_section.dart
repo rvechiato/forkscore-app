@@ -13,6 +13,7 @@ class PlacesDiscoverySection extends StatefulWidget {
     this.controller,
     this.repository,
     this.accessTokenProvider,
+    this.onReviewPlaceSelected,
     required this.currentUserName,
     this.eyebrow = 'Fluxo de avaliacao',
     this.title = 'Escolha o lugar da avaliacao',
@@ -31,6 +32,7 @@ class PlacesDiscoverySection extends StatefulWidget {
   final PlacesController? controller;
   final PlacesRepository? repository;
   final String? Function()? accessTokenProvider;
+  final ValueChanged<PlaceDetail>? onReviewPlaceSelected;
   final String currentUserName;
   final String eyebrow;
   final String title;
@@ -121,6 +123,7 @@ class _PlacesDiscoverySectionState extends State<PlacesDiscoverySection> {
                     place: _controller.selectedPlace,
                     loading: _controller.isLoadingDetail,
                     currentUserName: widget.currentUserName,
+                    onReviewPlaceSelected: widget.onReviewPlaceSelected,
                   );
 
                   if (compact) {
@@ -681,11 +684,13 @@ class _PlacesDetailCard extends StatelessWidget {
     required this.place,
     required this.loading,
     required this.currentUserName,
+    required this.onReviewPlaceSelected,
   });
 
   final PlaceDetail? place;
   final bool loading;
   final String currentUserName;
+  final ValueChanged<PlaceDetail>? onReviewPlaceSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -855,6 +860,15 @@ class _PlacesDetailCard extends StatelessWidget {
             ],
           ),
         ),
+        if (onReviewPlaceSelected != null) ...[
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            key: const Key('start-review-button'),
+            onPressed: () => onReviewPlaceSelected!(place!),
+            icon: const Icon(Icons.rate_review_outlined),
+            label: const Text('Avaliar este local'),
+          ),
+        ],
       ],
     );
   }

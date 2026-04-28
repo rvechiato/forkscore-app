@@ -1,3 +1,5 @@
+import '../../features/places/domain/models/place_detail.dart';
+
 enum AppRouteAccess { publicOnly, authenticated }
 
 abstract final class AppRoutes {
@@ -25,4 +27,10 @@ class RegisterRouteArgs {
   const RegisterRouteArgs({this.redirectAfterAuth});
 
   final String? redirectAfterAuth;
+}
+
+class ReviewsRouteArgs {
+  const ReviewsRouteArgs({this.initialPlace});
+
+  final PlaceDetail? initialPlace;
 }

@@ -45,6 +45,7 @@ def init_database(settings: Settings) -> None:
         ensure_places_schema,
         seed_places_taxonomy,
     )
+    from src.modules.reviews.infra.database import models as review_models  # noqa: F401
     from src.modules.users.infra.database import models as user_models  # noqa: F401
 
     engine = get_engine(settings.database_url)
