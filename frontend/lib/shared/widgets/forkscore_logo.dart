@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_theme.dart';
 
@@ -35,10 +36,11 @@ class ForkScoreLogo extends StatelessWidget {
             SizedBox(width: compact ? 12 : 20),
             Text(
               'ForkScore',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              style: GoogleFonts.plusJakartaSans(
                 fontSize: wordmarkSize ?? (compact ? 22 : 28),
-                fontWeight: FontWeight.w600,
-                letterSpacing: -0.3,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.6,
+                color: AppTheme.textPrimary,
               ),
             ),
           ],

@@ -294,12 +294,6 @@ class _AuthBrandPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const ForkScoreLogo(
-            showWordmark: true,
-            markWidth: 96,
-            wordmarkSize: 36,
-          ),
-          const SizedBox(height: 32),
           Text(
             title,
             style: Theme.of(
