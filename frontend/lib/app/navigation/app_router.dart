@@ -4,11 +4,18 @@ import '../../features/auth/presentation/pages/auth_shell_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/places/domain/places_repository.dart';
+import '../../features/places/presentation/pages/places_page.dart';
 import 'app_route_guard.dart';
 import 'app_routes.dart';
 import 'protected_placeholder_page.dart';
 
 class AppRouter {
+  AppRouter({required PlacesRepository placesRepository})
+    : _placesRepository = placesRepository;
+
+  final PlacesRepository _placesRepository;
+
   Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final requestedRouteName = settings.name ?? AppRoutes.login;
     final routeName = AppRoutes.all.contains(requestedRouteName)
@@ -58,15 +65,13 @@ class AppRouter {
         description:
             'Aqui entra o fluxo do perfil autenticado do usuario no MVP.',
       ),
-      AppRoutes.places => const ProtectedPlaceholderPage(
-        title: 'Locais',
-        description:
-            'Esta rota fica pronta para futuras buscas e detalhes de locais.',
+      AppRoutes.places => PlacesPage(
+        key: const ValueKey('places-page'),
+        repository: _placesRepository,
       ),
       AppRoutes.reviews => const ProtectedPlaceholderPage(
         title: 'Avaliacoes',
-        description:
-            'Esta rota protege a futura area de avaliacoes pos-login.',
+        description: 'Esta rota protege a futura area de avaliacoes pos-login.',
       ),
       _ => AuthShellPage(
         currentScreen: AuthFlowScreen.login,

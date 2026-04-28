@@ -39,10 +39,7 @@ class ProtectedPlaceholderPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+            Text(title, style: Theme.of(context).textTheme.headlineMedium),
             const SizedBox(height: 12),
             Text(
               'Area protegida para $userName.',
@@ -53,10 +50,9 @@ class ProtectedPlaceholderPage extends StatelessWidget {
             const SizedBox(height: 24),
             FilledButton(
               onPressed: () {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  AppRoutes.home,
-                  (route) => false,
-                );
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
               },
               child: const Text('Voltar para a home'),
             ),

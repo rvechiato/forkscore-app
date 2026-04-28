@@ -17,7 +17,9 @@ void main() {
   testWidgets(
     'redireciona rota protegida para login e volta ao destino apos autenticar',
     (WidgetTester tester) async {
-      await tester.pumpWidget(const ForkScoreApp(initialRoute: AppRoutes.places));
+      await tester.pumpWidget(
+        const ForkScoreApp(initialRoute: AppRoutes.places),
+      );
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('login-email-field')), findsOneWidget);
@@ -34,8 +36,9 @@ void main() {
       await tester.tap(find.text('Entrar'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Locais'), findsWidgets);
-      expect(find.textContaining('Area protegida'), findsOneWidget);
+      expect(find.text('Pesquisa de Lugares'), findsOneWidget);
+      expect(find.byKey(const Key('places-search-field')), findsOneWidget);
+      expect(find.byKey(const Key('new-establishment-button')), findsOneWidget);
     },
   );
 
@@ -60,10 +63,6 @@ void main() {
       'rafa@example.com',
     );
     await tester.enterText(
-      find.byKey(const Key('register-birth-date-field')),
-      '01/01/1990',
-    );
-    await tester.enterText(
       find.byKey(const Key('register-password-field')),
       'super-secret-123',
     );
@@ -76,14 +75,14 @@ void main() {
     await tester.tap(find.text('Criar Conta').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('Ola, Rafa Vecchiato!'), findsOneWidget);
-    expect(find.byKey(const Key('logout-button')), findsOneWidget);
+    expect(find.textContaining('Rafa Vecchiato'), findsWidgets);
+    expect(find.text('Sair'), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('logout-button')));
+    await tester.tap(find.text('Sair'));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('login-email-field')), findsOneWidget);
-    expect(find.text('Ola, Rafa Vecchiato!'), findsNothing);
+    expect(find.textContaining('Rafa Vecchiato'), findsNothing);
   });
 
   testWidgets('usuario autenticado navega para outra rota interna protegida', (
@@ -103,7 +102,7 @@ void main() {
     await tester.tap(find.text('Entrar'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('go-to-profile-button')));
+    await tester.tap(find.text('Perfil'));
     await tester.pumpAndSettle();
 
     expect(find.text('Perfil'), findsWidgets);
@@ -111,7 +110,7 @@ void main() {
   });
 
   testWidgets(
-    'mostra snackbar ao tentar login vazio e ao tocar em nova avaliacao',
+    'navega da home para a pesquisa de lugares ao tocar em nova avaliacao',
     (WidgetTester tester) async {
       await tester.pumpWidget(const ForkScoreApp());
       await tester.pumpAndSettle();
@@ -136,12 +135,64 @@ void main() {
       await tester.tap(find.text('Entrar').first);
       await tester.pumpAndSettle();
 
-      await tester.ensureVisible(find.byKey(const Key('new-review-button')));
-      await tester.tap(find.byKey(const Key('new-review-button')));
-      await tester.pump(const Duration(milliseconds: 250));
+      await tester.ensureVisible(find.text('Buscar Locais'));
+      await tester.tap(find.text('Buscar Locais'));
+      await tester.pumpAndSettle();
 
-      expect(find.byType(SnackBar), findsOneWidget);
-      expect(find.text('Iniciando fluxo de avaliacao...'), findsOneWidget);
+      expect(find.text('Pesquisa de Lugares'), findsOneWidget);
+      expect(find.byKey(const Key('places-search-field')), findsOneWidget);
+      expect(find.byKey(const Key('new-establishment-button')), findsOneWidget);
+      expect(find.text('Cafe do Centro'), findsWidgets);
     },
   );
+
+  testWidgets('abre o cadastro de lugar a partir da tela de pesquisa', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const ForkScoreApp(initialRoute: AppRoutes.places));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const Key('login-email-field')),
+      'chef@example.com',
+    );
+    await tester.enterText(
+      find.byKey(const Key('login-password-field')),
+      'super-secret-123',
+    );
+    await tester.tap(find.text('Entrar'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('new-establishment-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('place-create-page')), findsOneWidget);
+    expect(find.byKey(const Key('create-place-name-field')), findsOneWidget);
+    expect(find.byKey(const Key('submit-new-establishment')), findsOneWidget);
+  });
+
+  testWidgets('atalho buscar locais em acoes rapidas abre a rota de pesquisa', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const ForkScoreApp());
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const Key('login-email-field')),
+      'chef@example.com',
+    );
+    await tester.enterText(
+      find.byKey(const Key('login-password-field')),
+      'super-secret-123',
+    );
+    await tester.tap(find.text('Entrar'));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Buscar Locais'));
+    await tester.tap(find.text('Buscar Locais'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pesquisa de Lugares'), findsOneWidget);
+    expect(find.byKey(const Key('places-search-field')), findsOneWidget);
+  });
 }

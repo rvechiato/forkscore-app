@@ -41,10 +41,10 @@ class QuickActionCard extends StatelessWidget {
                 width: 46,
                 height: 46,
                 decoration: BoxDecoration(
-                  color: AppTheme.moss.withValues(alpha: 0.12),
+                  color: AppTheme.primaryBrand.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, color: AppTheme.moss),
+                child: Icon(icon, color: AppTheme.primaryBrand),
               ),
               const SizedBox(height: 12),
               Text(

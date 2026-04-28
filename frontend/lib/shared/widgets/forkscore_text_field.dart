@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_theme.dart';
+
 class ForkScoreTextField extends StatelessWidget {
   const ForkScoreTextField({
     super.key,
@@ -34,11 +36,13 @@ class ForkScoreTextField extends StatelessWidget {
         if (hasLabel) ...[
           Text(
             label!,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontSize: 14),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: AppTheme.textSecondary,
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
         ],
         TextFormField(
           controller: controller,
@@ -46,10 +50,12 @@ class ForkScoreTextField extends StatelessWidget {
           keyboardType: keyboardType,
           readOnly: readOnly,
           onTap: onTap,
+          style: Theme.of(context).textTheme.bodyLarge,
           decoration: InputDecoration(
             hintText: hintText,
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
+            isDense: true,
           ),
         ),
       ],

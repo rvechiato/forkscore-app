@@ -4,17 +4,13 @@ from uuid import UUID
 
 
 @dataclass(frozen=True)
-class Place:
-    """Registered place in the MVP catalog."""
+class Subcategory:
+    """Second-level gastronomic category bound to a category."""
 
     id: UUID
-    name: str
-    street: str
-    number: str
-    neighborhood: str
-    city: str
     category_id: UUID
-    subcategory_id: UUID
-    created_by_user_id: str
+    name: str
+    slug: str
+    is_active: bool
     created_at: datetime
     updated_at: datetime

@@ -51,9 +51,7 @@ class MockAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<AuthUser> getMyProfile({
-    required String accessToken,
-  }) async {
+  Future<AuthUser> getMyProfile({required String accessToken}) async {
     await _simulateLatency();
     return _getUserByToken(accessToken).toAuthUser();
   }
@@ -131,11 +129,7 @@ class _StoredUser {
   final String password;
   final DateTime? birthDate;
 
-  _StoredUser copyWith({
-    String? name,
-    String? email,
-    DateTime? birthDate,
-  }) {
+  _StoredUser copyWith({String? name, String? email, DateTime? birthDate}) {
     return _StoredUser(
       id: id,
       name: name ?? this.name,

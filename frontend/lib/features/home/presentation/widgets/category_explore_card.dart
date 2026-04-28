@@ -37,10 +37,7 @@ class CategoryExploreCard extends StatelessWidget {
           Positioned(
             top: 14,
             right: 14,
-            child: Text(
-              emoji,
-              style: const TextStyle(fontSize: 28),
-            ),
+            child: Text(emoji, style: const TextStyle(fontSize: 28)),
           ),
           Positioned(
             left: 14,

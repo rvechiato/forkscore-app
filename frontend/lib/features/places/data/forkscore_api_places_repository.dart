@@ -2,8 +2,10 @@ import 'dart:convert';
 
 import '../../../shared/http/simple_http_client.dart';
 import '../domain/models/place_author.dart';
+import '../domain/models/place_category.dart';
 import '../domain/models/place_detail.dart';
 import '../domain/models/place_summary.dart';
+import '../domain/models/place_subcategory.dart';
 import '../domain/places_repository.dart';
 
 class ForkScoreApiPlacesRepository implements PlacesRepository {
@@ -17,14 +19,45 @@ class ForkScoreApiPlacesRepository implements PlacesRepository {
   final SimpleHttpClient _client;
 
   @override
-  Future<List<PlaceSummary>> listPlaces({
+  Future<List<PlaceCategory>> listCategories({
     required String accessToken,
   }) async {
+    final response = await _client.get(
+      _resolve('/places/categories'),
+      headers: _authorizedHeaders(accessToken),
+    );
+    final body = _decodeListBody(response);
+    _ensureSuccess(response.statusCode, body);
+
+    return body
+        .map((item) => _parseCategory(item as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+
+  @override
+  Future<List<PlaceSubcategory>> listSubcategories({
+    required String accessToken,
+    required String categoryId,
+  }) async {
+    final response = await _client.get(
+      _resolve('/places/categories/$categoryId/subcategories'),
+      headers: _authorizedHeaders(accessToken),
+    );
+    final body = _decodeListBody(response);
+    _ensureSuccess(response.statusCode, body);
+
+    return body
+        .map((item) => _parseSubcategory(item as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+
+  @override
+  Future<List<PlaceSummary>> listPlaces({required String accessToken}) async {
     final response = await _client.get(
       _resolve('/places'),
       headers: _authorizedHeaders(accessToken),
     );
-    final body = _decodeBody(response);
+    final body = _decodeListBody(response);
     _ensureSuccess(response.statusCode, body);
 
     return body
@@ -54,6 +87,8 @@ class ForkScoreApiPlacesRepository implements PlacesRepository {
     required String number,
     required String neighborhood,
     required String city,
+    required String categoryId,
+    required String subcategoryId,
   }) async {
     final response = await _client.post(
       _resolve('/places'),
@@ -64,6 +99,8 @@ class ForkScoreApiPlacesRepository implements PlacesRepository {
         'number': number,
         'neighborhood': neighborhood,
         'city': city,
+        'category_id': categoryId,
+        'subcategory_id': subcategoryId,
       }),
     );
     final body = _decodeMapBody(response);
@@ -73,7 +110,7 @@ class ForkScoreApiPlacesRepository implements PlacesRepository {
 
   Uri _resolve(String path) => _baseUri.resolve(path);
 
-  List<dynamic> _decodeBody(HttpResponseData response) {
+  List<dynamic> _decodeListBody(HttpResponseData response) {
     if (response.body.isEmpty) {
       return const [];
     }
@@ -101,6 +138,10 @@ class ForkScoreApiPlacesRepository implements PlacesRepository {
       name: payload['name'] as String,
       neighborhood: payload['neighborhood'] as String,
       city: payload['city'] as String,
+      category: _parseCategory(payload['category'] as Map<String, dynamic>),
+      subcategory: _parseSubcategory(
+        payload['subcategory'] as Map<String, dynamic>,
+      ),
       createdBy: _parseAuthor(payload['created_by'] as Map<String, dynamic>),
     );
   }
@@ -113,7 +154,28 @@ class ForkScoreApiPlacesRepository implements PlacesRepository {
       number: payload['number'] as String,
       neighborhood: payload['neighborhood'] as String,
       city: payload['city'] as String,
+      category: _parseCategory(payload['category'] as Map<String, dynamic>),
+      subcategory: _parseSubcategory(
+        payload['subcategory'] as Map<String, dynamic>,
+      ),
       createdBy: _parseAuthor(payload['created_by'] as Map<String, dynamic>),
+    );
+  }
+
+  PlaceCategory _parseCategory(Map<String, dynamic> payload) {
+    return PlaceCategory(
+      id: payload['id'] as String,
+      name: payload['name'] as String,
+      slug: payload['slug'] as String,
+    );
+  }
+
+  PlaceSubcategory _parseSubcategory(Map<String, dynamic> payload) {
+    return PlaceSubcategory(
+      id: payload['id'] as String,
+      categoryId: payload['category_id'] as String,
+      name: payload['name'] as String,
+      slug: payload['slug'] as String,
     );
   }
 
@@ -131,6 +193,12 @@ class ForkScoreApiPlacesRepository implements PlacesRepository {
 
     if (body case {'detail': final String detail} when detail.isNotEmpty) {
       throw PlacesRepositoryException(detail);
+    }
+    if (body case [final Map<String, dynamic> first, ...]) {
+      final detail = first['detail'];
+      if (detail is String && detail.isNotEmpty) {
+        throw PlacesRepositoryException(detail);
+      }
     }
 
     throw PlacesRepositoryException('Nao foi possivel concluir a solicitacao.');

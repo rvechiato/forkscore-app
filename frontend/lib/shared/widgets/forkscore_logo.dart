@@ -20,7 +20,7 @@ class ForkScoreLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final resolvedMarkWidth = markWidth ?? (compact ? 54.0 : 96.0);
+    final resolvedMarkWidth = markWidth ?? (compact ? 44.0 : 72.0);
 
     return FittedBox(
       fit: BoxFit.scaleDown,
@@ -32,11 +32,13 @@ class ForkScoreLogo extends StatelessWidget {
             child: CustomPaint(painter: const _ForkScoreLogoPainter()),
           ),
           if (showWordmark) ...[
-            SizedBox(width: compact ? 8 : 14),
+            SizedBox(width: compact ? 12 : 20),
             Text(
               'ForkScore',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontSize: wordmarkSize ?? (compact ? 28 : 36),
+                fontSize: wordmarkSize ?? (compact ? 22 : 28),
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.3,
               ),
             ),
           ],
@@ -55,89 +57,77 @@ class _ForkScoreLogoPainter extends CustomPainter {
     final scale = shortestSide / 100;
     final center = Offset(size.width / 2, size.height / 2);
 
-    final platePaint = Paint()
-      ..color = AppTheme.softBlue
+    final thinLinePaint = Paint()
+      ..color = AppTheme.primaryBrand
       ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    platePaint.strokeWidth = 2.5 * scale;
-    canvas.drawCircle(center, 47 * scale, platePaint);
-
-    final innerPlatePaint = Paint()
-      ..color = AppTheme.softBlue.withValues(alpha: 0.3)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.8 * scale
+      ..strokeWidth = 2.0 * scale
       ..strokeCap = StrokeCap.round;
+
+    // Prato ultra-fino
+    canvas.drawCircle(center, 48 * scale, thinLinePaint);
+
+    final dashPaint = Paint()
+      ..color = AppTheme.textSecondary.withValues(alpha: 0.5)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0 * scale
+      ..strokeCap = StrokeCap.round;
+
     _drawDashedCircle(
       canvas,
       center: center,
       radius: 40 * scale,
-      dashLength: 2.2 * scale,
-      gapLength: 2.2 * scale,
-      paint: innerPlatePaint,
+      dashLength: 4 * scale,
+      gapLength: 4 * scale,
+      paint: dashPaint,
     );
 
+    // Garfo e faca (linhas super finas e geométricas)
     final utensilPaint = Paint()
-      ..color = AppTheme.terracotta
+      ..color = AppTheme.primaryBrand
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 4.5 * scale
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
+      ..strokeWidth = 2.2 * scale
+      ..strokeCap = StrokeCap.round;
 
-    final fork = Path()
-      ..moveTo(size.width * 0.36, size.height * 0.28)
-      ..lineTo(size.width * 0.36, size.height * 0.45)
-      ..cubicTo(
-        size.width * 0.36,
-        size.height * 0.50,
-        size.width * 0.40,
-        size.height * 0.52,
-        size.width * 0.43,
-        size.height * 0.52,
-      )
-      ..lineTo(size.width * 0.43, size.height * 0.72);
-    canvas.drawPath(fork, utensilPaint);
-
-    for (final x in [36.0, 40.5, 45.5, 50.0]) {
-      canvas.drawLine(
-        Offset(size.width * (x / 100), size.height * 0.28),
-        Offset(size.width * (x / 100), size.height * 0.36),
-        utensilPaint,
-      );
-    }
-
-    final knife = Path()
-      ..moveTo(size.width * 0.64, size.height * 0.28)
-      ..cubicTo(
-        size.width * 0.64,
-        size.height * 0.28,
-        size.width * 0.56,
-        size.height * 0.31,
-        size.width * 0.56,
-        size.height * 0.47,
-      )
-      ..lineTo(size.width * 0.56, size.height * 0.52)
-      ..cubicTo(
-        size.width * 0.56,
-        size.height * 0.52,
-        size.width * 0.57,
-        size.height * 0.72,
-        size.width * 0.57,
-        size.height * 0.72,
-      );
-    canvas.drawPath(knife, utensilPaint);
-
+    // Garfo simplificado e elegante
+    final forkX = size.width * 0.40;
     canvas.drawLine(
-      Offset(size.width * 0.56, size.height * 0.52),
-      Offset(size.width * 0.64, size.height * 0.52),
+      Offset(forkX, size.height * 0.25),
+      Offset(forkX, size.height * 0.75),
       utensilPaint,
     );
     canvas.drawLine(
-      Offset(size.width * 0.64, size.height * 0.28),
-      Offset(size.width * 0.64, size.height * 0.52),
+      Offset(forkX - 4 * scale, size.height * 0.25),
+      Offset(forkX - 4 * scale, size.height * 0.45),
       utensilPaint,
     );
+    canvas.drawLine(
+      Offset(forkX + 4 * scale, size.height * 0.25),
+      Offset(forkX + 4 * scale, size.height * 0.45),
+      utensilPaint,
+    );
+    canvas.drawArc(
+      Rect.fromCircle(
+        center: Offset(forkX, size.height * 0.45),
+        radius: 4 * scale,
+      ),
+      0,
+      math.pi,
+      false,
+      utensilPaint,
+    );
+
+    // Faca simplificada e elegante
+    final knifeX = size.width * 0.60;
+    canvas.drawLine(
+      Offset(knifeX, size.height * 0.25),
+      Offset(knifeX, size.height * 0.75),
+      utensilPaint,
+    );
+    final knifeBlade = Path()
+      ..moveTo(knifeX, size.height * 0.25)
+      ..lineTo(knifeX + 6 * scale, size.height * 0.35)
+      ..lineTo(knifeX, size.height * 0.50);
+    canvas.drawPath(knifeBlade, utensilPaint);
   }
 
   void _drawDashedCircle(

@@ -41,11 +41,22 @@ def init_database(settings: Settings) -> None:
     # Import models before metadata creation so SQLAlchemy can register them.
     from src.modules.auth.infra.database import models as auth_models  # noqa: F401
     from src.modules.places.infra.database import models as place_models  # noqa: F401
+    from src.modules.places.infra.database.bootstrap import (
+        ensure_places_schema,
+        seed_places_taxonomy,
+    )
     from src.modules.users.infra.database import models as user_models  # noqa: F401
 
     engine = get_engine(settings.database_url)
     _run_sqlite_bootstrap_migrations(engine, settings.database_url)
+    ensure_places_schema(engine, settings.database_url)
     Base.metadata.create_all(bind=engine)
+    session_factory = get_session_factory(settings.database_url)
+    session = session_factory()
+    try:
+        seed_places_taxonomy(session)
+    finally:
+        session.close()
 
 
 def get_db_session() -> Generator[Session, None, None]:

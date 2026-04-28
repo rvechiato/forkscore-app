@@ -26,7 +26,9 @@ class AuthShellPage extends StatelessWidget {
           final useWebLayout = constraints.maxWidth >= 900;
 
           return ColoredBox(
-            color: useWebLayout ? AppTheme.previewBackdrop : AppTheme.cream,
+            color: useWebLayout
+                ? AppTheme.previewBackdrop
+                : AppTheme.background,
             child: Center(
               child: AuthDeviceFrame(
                 useWebLayout: useWebLayout,
@@ -61,8 +63,6 @@ class AuthShellPage extends StatelessWidget {
       ),
     };
 
-    Navigator.of(
-      context,
-    ).pushReplacementNamed(routeName, arguments: arguments);
+    Navigator.of(context).pushReplacementNamed(routeName, arguments: arguments);
   }
 }

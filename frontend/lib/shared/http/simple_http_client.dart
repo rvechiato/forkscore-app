@@ -1,10 +1,7 @@
 import 'simple_http_client_impl.dart';
 
 class HttpResponseData {
-  const HttpResponseData({
-    required this.statusCode,
-    required this.body,
-  });
+  const HttpResponseData({required this.statusCode, required this.body});
 
   final int statusCode;
   final String body;

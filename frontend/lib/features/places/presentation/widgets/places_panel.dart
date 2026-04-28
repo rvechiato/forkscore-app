@@ -24,6 +24,20 @@ class _PlacesPanelState extends State<PlacesPanel> {
   final _numberController = TextEditingController();
   final _neighborhoodController = TextEditingController();
   final _cityController = TextEditingController();
+  String? _selectedCategoryId;
+  String? _selectedSubcategoryId;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.controller.categories.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          widget.controller.loadCategories();
+        }
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -99,15 +113,9 @@ class _PlacesPanelState extends State<PlacesPanel> {
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      flex: 11,
-                      child: _buildComposer(theme),
-                    ),
+                    Expanded(flex: 11, child: _buildComposer(theme)),
                     const SizedBox(width: 16),
-                    Expanded(
-                      flex: 9,
-                      child: _buildDetail(theme),
-                    ),
+                    Expanded(flex: 9, child: _buildDetail(theme)),
                   ],
                 );
               },
@@ -167,7 +175,9 @@ class _PlacesPanelState extends State<PlacesPanel> {
                         child: TextFormField(
                           key: const Key('place-number-field'),
                           controller: _numberController,
-                          decoration: const InputDecoration(labelText: 'Numero'),
+                          decoration: const InputDecoration(
+                            labelText: 'Numero',
+                          ),
                           validator: _requiredValidator,
                         ),
                       ),
@@ -176,7 +186,9 @@ class _PlacesPanelState extends State<PlacesPanel> {
                         child: TextFormField(
                           key: const Key('place-neighborhood-field'),
                           controller: _neighborhoodController,
-                          decoration: const InputDecoration(labelText: 'Bairro'),
+                          decoration: const InputDecoration(
+                            labelText: 'Bairro',
+                          ),
                           validator: _requiredValidator,
                         ),
                       ),
@@ -189,6 +201,61 @@ class _PlacesPanelState extends State<PlacesPanel> {
                     decoration: const InputDecoration(labelText: 'Cidade'),
                     validator: _requiredValidator,
                   ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    key: ValueKey(
+                      'place-category-field-${_selectedCategoryId ?? 'empty'}',
+                    ),
+                    initialValue: _selectedCategoryId,
+                    decoration: const InputDecoration(labelText: 'Categoria'),
+                    items: widget.controller.categories
+                        .map(
+                          (category) => DropdownMenuItem<String>(
+                            value: category.id,
+                            child: Text(category.name),
+                          ),
+                        )
+                        .toList(growable: false),
+                    onChanged: widget.controller.isLoadingTaxonomy
+                        ? null
+                        : (value) async {
+                            setState(() {
+                              _selectedCategoryId = value;
+                              _selectedSubcategoryId = null;
+                            });
+                            widget.controller.clearSubcategories();
+                            if (value != null) {
+                              await widget.controller.loadSubcategories(value);
+                            }
+                          },
+                    validator: _requiredSelectionValidator,
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    key: ValueKey(
+                      'place-subcategory-field-${_selectedSubcategoryId ?? 'empty'}',
+                    ),
+                    initialValue: _selectedSubcategoryId,
+                    decoration: const InputDecoration(
+                      labelText: 'Subcategoria',
+                    ),
+                    items: widget.controller.subcategories
+                        .map(
+                          (subcategory) => DropdownMenuItem<String>(
+                            value: subcategory.id,
+                            child: Text(subcategory.name),
+                          ),
+                        )
+                        .toList(growable: false),
+                    onChanged:
+                        _selectedCategoryId == null ||
+                            widget.controller.isLoadingTaxonomy
+                        ? null
+                        : (value) {
+                            setState(() => _selectedSubcategoryId = value);
+                          },
+                    validator: _requiredSelectionValidator,
+                  ),
                   const SizedBox(height: 18),
                   Row(
                     children: [
@@ -196,9 +263,7 @@ class _PlacesPanelState extends State<PlacesPanel> {
                         child: FilledButton(
                           key: const Key('place-submit-button'),
                           onPressed: busy ? null : _submit,
-                          child: Text(
-                            busy ? 'Salvando...' : 'Salvar local',
-                          ),
+                          child: Text(busy ? 'Salvando...' : 'Salvar local'),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -257,7 +322,8 @@ class _PlacesPanelState extends State<PlacesPanel> {
                           placeId: place.id,
                           title: place.name,
                           subtitle:
-                              '${place.neighborhood}, ${place.city}',
+                              '${place.neighborhood}, ${place.city} • '
+                              '${place.category.name} / ${place.subcategory.name}',
                           authorName: place.createdBy.name,
                           selected:
                               widget.controller.selectedPlace?.id == place.id,
@@ -320,6 +386,8 @@ class _PlacesPanelState extends State<PlacesPanel> {
       number: _numberController.text.trim(),
       neighborhood: _neighborhoodController.text.trim(),
       city: _cityController.text.trim(),
+      categoryId: _selectedCategoryId!,
+      subcategoryId: _selectedSubcategoryId!,
     );
 
     if (widget.controller.errorMessage != null) {
@@ -331,10 +399,22 @@ class _PlacesPanelState extends State<PlacesPanel> {
     _numberController.clear();
     _neighborhoodController.clear();
     _cityController.clear();
+    setState(() {
+      _selectedCategoryId = null;
+      _selectedSubcategoryId = null;
+    });
+    widget.controller.clearSubcategories();
   }
 
   String? _requiredValidator(String? value) {
     if (value == null || value.trim().isEmpty) {
+      return 'Campo obrigatorio.';
+    }
+    return null;
+  }
+
+  String? _requiredSelectionValidator(String? value) {
+    if (value == null || value.isEmpty) {
       return 'Campo obrigatorio.';
     }
     return null;
@@ -393,16 +473,16 @@ class _PlaceSummaryTile extends StatelessWidget {
           children: [
             Text(
               title,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: const Color(0xFF2E2118),
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(color: const Color(0xFF2E2118)),
             ),
             const SizedBox(height: 6),
             Text(
               subtitle,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: const Color(0xFF6A5442),
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: const Color(0xFF6A5442)),
             ),
             const SizedBox(height: 12),
             Container(
@@ -427,10 +507,7 @@ class _PlaceSummaryTile extends StatelessWidget {
 }
 
 class _PlaceDetailView extends StatelessWidget {
-  const _PlaceDetailView({
-    required this.place,
-    required this.loading,
-  });
+  const _PlaceDetailView({required this.place, required this.loading});
 
   final PlaceDetail place;
   final bool loading;
@@ -465,6 +542,8 @@ class _PlaceDetailView extends StatelessWidget {
         _DetailLine(label: 'Numero', value: place.number),
         _DetailLine(label: 'Bairro', value: place.neighborhood),
         _DetailLine(label: 'Cidade', value: place.city),
+        _DetailLine(label: 'Categoria', value: place.category.name),
+        _DetailLine(label: 'Subcategoria', value: place.subcategory.name),
         _DetailLine(
           label: 'Autoria',
           value: place.createdBy.name ?? 'Autor desconhecido',
@@ -495,10 +574,7 @@ class _PlaceDetailView extends StatelessWidget {
 }
 
 class _DetailLine extends StatelessWidget {
-  const _DetailLine({
-    required this.label,
-    required this.value,
-  });
+  const _DetailLine({required this.label, required this.value});
 
   final String label;
   final String value;
@@ -509,9 +585,9 @@ class _DetailLine extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: Text(
         '$label: $value',
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-          color: const Color(0xFF5C4331),
-        ),
+        style: Theme.of(
+          context,
+        ).textTheme.bodyLarge?.copyWith(color: const Color(0xFF5C4331)),
       ),
     );
   }
