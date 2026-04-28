@@ -58,33 +58,15 @@ class _HomePageState extends State<HomePage> {
                         color: AppTheme.textSecondary,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Pesquise, escolha um lugar e mantenha o fluxo principal '
-                      'do MVP direto na home.',
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(color: AppTheme.textPrimary),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'A busca agora vive aqui: voce pode encontrar lugares, '
-                      'abrir um novo estabelecimento e deixar a estrutura '
-                      'pronta para favoritos no futuro.',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppTheme.textSecondary,
-                      ),
-                    ),
                     const SizedBox(height: 32),
                     PlacesDiscoverySection(
                       repository: widget.repository,
                       accessTokenProvider: () =>
                           sessionController.session?.accessToken,
                       currentUserName: userName,
-                      eyebrow: 'Home autenticada',
                       title: 'Encontre o lugar certo sem sair da home',
-                      description:
-                          'Use a busca para localizar um lugar ja cadastrado '
-                          'ou crie um novo estabelecimento antes de avaliar.',
+                      eyebrow: '',
+                      description: '',
                       showHeroDivider: false,
                     ),
                     const SizedBox(height: 32),

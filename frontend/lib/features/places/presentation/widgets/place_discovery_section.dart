@@ -234,6 +234,8 @@ class _PlacesHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final hasEyebrow = eyebrow.trim().isNotEmpty;
+    final hasDescription = description.trim().isNotEmpty;
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -245,24 +247,26 @@ class _PlacesHero extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryBrand.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(
-                color: AppTheme.primaryBrand.withValues(alpha: 0.1),
+          if (hasEyebrow) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryBrand.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: AppTheme.primaryBrand.withValues(alpha: 0.1),
+                ),
+              ),
+              child: Text(
+                eyebrow,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppTheme.primaryBrand,
+                  letterSpacing: 0.2,
+                ),
               ),
             ),
-            child: Text(
-              eyebrow,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: AppTheme.primaryBrand,
-                letterSpacing: 0.2,
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
+            const SizedBox(height: 14),
+          ],
           Text(
             title,
             style: theme.textTheme.headlineLarge?.copyWith(
@@ -270,13 +274,15 @@ class _PlacesHero extends StatelessWidget {
               color: AppTheme.textPrimary,
             ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            description,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: AppTheme.textSecondary,
+          if (hasDescription) ...[
+            const SizedBox(height: 10),
+            Text(
+              description,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: AppTheme.textSecondary,
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: 20),
           LayoutBuilder(
             builder: (context, constraints) {
