@@ -64,7 +64,8 @@ class _HomePageState extends State<HomePage> {
                       accessTokenProvider: () =>
                           sessionController.session?.accessToken,
                       currentUserName: userName,
-                      title: 'Encontre o lugar certo sem sair da home',
+                      title: 'Escolha, experimente e avalie',
+                      titleFontSize: 32,
                       eyebrow: '',
                       description: '',
                       showHeroDivider: false,

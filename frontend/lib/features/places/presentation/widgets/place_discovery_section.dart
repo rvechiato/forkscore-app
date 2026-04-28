@@ -19,6 +19,7 @@ class PlacesDiscoverySection extends StatefulWidget {
     this.description =
         'Pesquise entre os lugares cadastrados ou abra um novo '
         'estabelecimento antes de registrar sua experiencia.',
+    this.titleFontSize = 42,
     this.contentPadding = EdgeInsets.zero,
     this.showHeroDivider = true,
   }) : assert(
@@ -34,6 +35,7 @@ class PlacesDiscoverySection extends StatefulWidget {
   final String eyebrow;
   final String title;
   final String description;
+  final double titleFontSize;
   final EdgeInsetsGeometry contentPadding;
   final bool showHeroDivider;
 
@@ -93,6 +95,7 @@ class _PlacesDiscoverySectionState extends State<PlacesDiscoverySection> {
                 eyebrow: widget.eyebrow,
                 title: widget.title,
                 description: widget.description,
+                titleFontSize: widget.titleFontSize,
                 query: _query,
                 showDivider: widget.showHeroDivider,
                 searchController: _searchController,
@@ -215,6 +218,7 @@ class _PlacesHero extends StatelessWidget {
     required this.eyebrow,
     required this.title,
     required this.description,
+    required this.titleFontSize,
     required this.query,
     required this.showDivider,
     required this.searchController,
@@ -225,6 +229,7 @@ class _PlacesHero extends StatelessWidget {
   final String eyebrow;
   final String title;
   final String description;
+  final double titleFontSize;
   final String query;
   final bool showDivider;
   final TextEditingController searchController;
@@ -270,7 +275,7 @@ class _PlacesHero extends StatelessWidget {
           Text(
             title,
             style: theme.textTheme.headlineLarge?.copyWith(
-              fontSize: 42,
+              fontSize: titleFontSize,
               color: AppTheme.textPrimary,
             ),
           ),
