@@ -64,6 +64,12 @@ class _HomePageState extends State<HomePage> {
                       accessTokenProvider: () =>
                           sessionController.session?.accessToken,
                       currentUserName: userName,
+                      onReviewPlaceSelected: (place) {
+                        Navigator.of(context).pushNamed(
+                          AppRoutes.reviews,
+                          arguments: ReviewsRouteArgs(initialPlace: place),
+                        );
+                      },
                       title: 'Escolha, experimente e avalie',
                       titleFontSize: 32,
                       eyebrow: '',
