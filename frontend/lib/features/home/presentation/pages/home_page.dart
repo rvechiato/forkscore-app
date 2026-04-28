@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../../app/auth_scope.dart';
 import '../../../../app/navigation/app_routes.dart';
 import '../../../../shared/theme/app_theme.dart';
-import '../../../../shared/widgets/action_buttons.dart';
 import '../../../../shared/widgets/forkscore_logo.dart';
 
 class HomePage extends StatelessWidget {
@@ -50,27 +49,6 @@ class HomePage extends StatelessWidget {
                       'Bem-vindo, $userName.',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: AppTheme.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Descubra o\nextraordinario.',
-                      style: Theme.of(context).textTheme.headlineLarge,
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      'Registre sabor, atendimento e custo-beneficio\ndos melhores lugares da cidade.',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppTheme.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: 220,
-                      child: PrimaryActionButton(
-                        label: 'Nova Avaliacao',
-                        onPressed: () =>
-                            Navigator.of(context).pushNamed(AppRoutes.places),
                       ),
                     ),
 

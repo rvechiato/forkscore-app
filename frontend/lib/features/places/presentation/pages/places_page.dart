@@ -85,7 +85,7 @@ class _PlacesPageState extends State<PlacesPage> {
                       },
                       onCreatePressed: () => _openCreatePage(controller),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
                     if (controller.errorMessage != null) ...[
                       _InlineError(message: controller.errorMessage!),
                       const SizedBox(height: 16),
@@ -171,6 +171,10 @@ class _PlacesPageState extends State<PlacesPage> {
     await controller.loadPlaces();
   }
 }
+
+// ---------------------------------------------------------------------------
+// Hero / Header
+// ---------------------------------------------------------------------------
 
 class _PlacesHero extends StatelessWidget {
   const _PlacesHero({
@@ -268,7 +272,7 @@ class _PlacesHero extends StatelessWidget {
                     vertical: 16,
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
                 icon: const Icon(Icons.add_business_outlined),
@@ -301,6 +305,10 @@ class _PlacesHero extends StatelessWidget {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Results list card
+// ---------------------------------------------------------------------------
+
 class _PlacesResultsCard extends StatelessWidget {
   const _PlacesResultsCard({
     required this.controller,
@@ -316,65 +324,88 @@ class _PlacesResultsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return DecoratedBox(
-      decoration: _cardDecoration,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.inputBorder),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x08000000),
+            blurRadius: 24,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // ── Header row ──────────────────────────────────────────
             Row(
               children: [
-                Text('Lugares cadastrados', style: theme.textTheme.titleLarge),
-                const Spacer(),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Lugares cadastrados',
+                        style: theme.textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        query.isEmpty
+                            ? '${places.length} resultado${places.length != 1 ? 's' : ''}'
+                            : '${places.length} resultado${places.length != 1 ? 's' : ''} para "$query"',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 if (controller.isLoading)
                   const SizedBox(
-                    width: 18,
-                    height: 18,
+                    width: 20,
+                    height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2.2),
+                  )
+                else
+                  IconButton(
+                    onPressed: controller.loadPlaces,
+                    icon: const Icon(Icons.refresh_rounded, size: 20),
+                    tooltip: 'Atualizar lista',
+                    style: IconButton.styleFrom(
+                      foregroundColor: AppTheme.textSecondary,
+                    ),
                   ),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              query.isEmpty
-                  ? 'Selecione um resultado para conferir os detalhes.'
-                  : 'Resultados filtrados para a busca atual.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppTheme.textSecondary,
-              ),
-            ),
             const SizedBox(height: 16),
+            const Divider(height: 1),
+            const SizedBox(height: 8),
+
+            // ── List ────────────────────────────────────────────────
             if (places.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF9FAFB),
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                child: Text(
-                  query.isEmpty
-                      ? 'Nenhum lugar cadastrado ainda.'
-                      : 'Nenhum lugar corresponde a essa busca.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.textSecondary,
-                  ),
-                ),
-              )
+              _EmptyState(hasQuery: query.isNotEmpty)
             else
-              Column(
-                children: places
-                    .map(
-                      (place) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _PlaceSummaryTile(
-                          place: place,
-                          selected: controller.selectedPlace?.id == place.id,
-                          onTap: () => controller.selectPlace(place.id),
-                        ),
-                      ),
-                    )
-                    .toList(),
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: places.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 4),
+                itemBuilder: (context, index) {
+                  final place = places[index];
+                  final isSelected =
+                      controller.selectedPlace?.id == place.id;
+
+                  return _PlaceSummaryTile(
+                    place: place,
+                    selected: isSelected,
+                    onTap: () => controller.selectPlace(place.id),
+                  );
+                },
               ),
           ],
         ),
@@ -382,6 +413,256 @@ class _PlacesResultsCard extends StatelessWidget {
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Single place tile
+// ---------------------------------------------------------------------------
+
+class _PlaceSummaryTile extends StatefulWidget {
+  const _PlaceSummaryTile({
+    required this.place,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final PlaceSummary place;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  State<_PlaceSummaryTile> createState() => _PlaceSummaryTileState();
+}
+
+class _PlaceSummaryTileState extends State<_PlaceSummaryTile> {
+  bool _hovered = false;
+
+  IconData _categoryIcon(String slug) {
+    switch (slug) {
+      case 'restaurantes':
+        return Icons.restaurant_rounded;
+      case 'cafeterias':
+        return Icons.coffee_rounded;
+      case 'bares':
+        return Icons.local_bar_rounded;
+      case 'padarias':
+        return Icons.bakery_dining_rounded;
+      case 'docerias':
+        return Icons.cake_rounded;
+      case 'pizzarias':
+        return Icons.local_pizza_rounded;
+      default:
+        return Icons.storefront_rounded;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final place = widget.place;
+    final selected = widget.selected;
+
+    final bgColor = selected
+        ? AppTheme.primaryBrand.withValues(alpha: 0.07)
+        : _hovered
+            ? AppTheme.primaryBrand.withValues(alpha: 0.03)
+            : Colors.transparent;
+
+    final borderColor = selected
+        ? AppTheme.primaryBrand.withValues(alpha: 0.25)
+        : _hovered
+            ? AppTheme.inputBorder
+            : Colors.transparent;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
+          key: Key('place-search-result-${place.id}'),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor),
+          ),
+          child: Row(
+            children: [
+              // ── Category icon ───────────────────────────────────
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: selected
+                      ? AppTheme.primaryBrand.withValues(alpha: 0.12)
+                      : AppTheme.background,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  _categoryIcon(place.category.slug),
+                  size: 22,
+                  color: selected
+                      ? AppTheme.primaryBrand
+                      : AppTheme.textSecondary,
+                ),
+              ),
+              const SizedBox(width: 14),
+
+              // ── Text content ────────────────────────────────────
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      place.name,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      '${place.neighborhood}, ${place.city}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppTheme.textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // ── Tags ────────────────────────────────────────────
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _TagChip(
+                    label: place.category.name,
+                    color: AppTheme.primaryBrand,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    place.createdBy.name ?? 'Autor desconhecido',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppTheme.textSecondary,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+
+              // ── Chevron ─────────────────────────────────────────
+              const SizedBox(width: 8),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 20,
+                color: selected
+                    ? AppTheme.primaryBrand
+                    : AppTheme.textSecondary.withValues(alpha: 0.4),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Tag chip
+// ---------------------------------------------------------------------------
+
+class _TagChip extends StatelessWidget {
+  const _TagChip({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w600,
+          fontSize: 11,
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Empty state
+// ---------------------------------------------------------------------------
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({required this.hasQuery});
+
+  final bool hasQuery;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryBrand.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              hasQuery ? Icons.search_off_rounded : Icons.store_outlined,
+              size: 28,
+              color: AppTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            hasQuery
+                ? 'Nenhum resultado encontrado'
+                : 'Nenhum lugar cadastrado',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: AppTheme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            hasQuery
+                ? 'Tente ajustar os termos da busca ou cadastre um novo lugar.'
+                : 'Comece cadastrando o primeiro estabelecimento.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppTheme.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Detail card
+// ---------------------------------------------------------------------------
 
 class _PlacesDetailCard extends StatelessWidget {
   const _PlacesDetailCard({
@@ -398,181 +679,252 @@ class _PlacesDetailCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return DecoratedBox(
-      decoration: _cardDecoration,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.inputBorder),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x08000000),
+            blurRadius: 24,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+        padding: const EdgeInsets.all(24),
         child: place == null
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Detalhe do lugar', style: theme.textTheme.titleLarge),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Abra um item da lista para ver endereco completo e '
-                    'confirmar a autoria antes de avaliar.',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: AppTheme.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryBrand.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Text(
-                      'Avaliador atual: $currentUserName',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.primaryBrand,
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          place!.name,
-                          style: theme.textTheme.headlineSmall,
-                        ),
-                      ),
-                      if (loading)
-                        const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2.2),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-                  _DetailLine(label: 'Rua', value: place!.street),
-                  _DetailLine(label: 'Numero', value: place!.number),
-                  _DetailLine(label: 'Bairro', value: place!.neighborhood),
-                  _DetailLine(label: 'Cidade', value: place!.city),
-                  _DetailLine(label: 'Categoria', value: place!.category.name),
-                  _DetailLine(
-                    label: 'Subcategoria',
-                    value: place!.subcategory.name,
-                  ),
-                  _DetailLine(
-                    label: 'Autoria',
-                    value: place!.createdBy.name ?? 'Autor desconhecido',
-                  ),
-                  const SizedBox(height: 18),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: AppTheme.inputBackground,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Text(
-                      'Endereco completo: ${place!.street}, ${place!.number} - '
-                      '${place!.neighborhood}, ${place!.city}',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: AppTheme.textPrimary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            ? _buildEmptyDetail(theme)
+            : _buildPlaceDetail(theme),
       ),
     );
   }
-}
 
-class _PlaceSummaryTile extends StatelessWidget {
-  const _PlaceSummaryTile({
-    required this.place,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final PlaceSummary place;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return InkWell(
-      key: Key('place-search-result-${place.id}'),
-      borderRadius: BorderRadius.circular(24),
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.all(18),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppTheme.inputBorder)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildEmptyDetail(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            Text(place.name, style: theme.textTheme.titleLarge),
-            const SizedBox(height: 6),
-            Text(
-              '${place.neighborhood}, ${place.city}',
-              style: theme.textTheme.bodyMedium?.copyWith(
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryBrand.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.info_outline_rounded,
+                size: 20,
                 color: AppTheme.textSecondary,
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              '${place.category.name} • ${place.subcategory.name}',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppTheme.primaryBrand,
-                fontWeight: FontWeight.w600,
-              ),
+            const SizedBox(width: 12),
+            Text('Detalhe do lugar', style: theme.textTheme.titleLarge),
+          ],
+        ),
+        const SizedBox(height: 20),
+        Text(
+          'Selecione um item da lista para ver o endereco completo e '
+          'confirmar a autoria antes de avaliar.',
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: AppTheme.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 20),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryBrand.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppTheme.primaryBrand.withValues(alpha: 0.1),
             ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: const BoxDecoration(),
-              child: Text(
-                place.createdBy.name == null
-                    ? 'Autor desconhecido'
-                    : 'Por ${place.createdBy.name}',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.primaryBrand,
-                  fontWeight: FontWeight.w700,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.person_outline_rounded,
+                size: 18,
+                color: AppTheme.primaryBrand,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Avaliador atual: $currentUserName',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.primaryBrand,
+                  ),
                 ),
               ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPlaceDetail(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Header ──────────────────────────────────────────────
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                place!.name,
+                style: theme.textTheme.headlineSmall,
+              ),
+            ),
+            if (loading)
+              const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2.2),
+              ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            _TagChip(
+              label: place!.category.name,
+              color: AppTheme.primaryBrand,
+            ),
+            const SizedBox(width: 8),
+            _TagChip(
+              label: place!.subcategory.name,
+              color: AppTheme.accentGreen,
             ),
           ],
         ),
-      ),
+        const SizedBox(height: 20),
+        const Divider(height: 1),
+        const SizedBox(height: 20),
+
+        // ── Details grid ────────────────────────────────────────
+        _DetailRow(
+          icon: Icons.location_on_outlined,
+          label: 'Rua',
+          value: place!.street,
+        ),
+        _DetailRow(
+          icon: Icons.tag_rounded,
+          label: 'Numero',
+          value: place!.number,
+        ),
+        _DetailRow(
+          icon: Icons.map_outlined,
+          label: 'Bairro',
+          value: place!.neighborhood,
+        ),
+        _DetailRow(
+          icon: Icons.location_city_rounded,
+          label: 'Cidade',
+          value: place!.city,
+        ),
+        _DetailRow(
+          icon: Icons.person_outline_rounded,
+          label: 'Autoria',
+          value: place!.createdBy.name ?? 'Autor desconhecido',
+        ),
+
+        const SizedBox(height: 20),
+
+        // ── Full address summary ────────────────────────────────
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppTheme.background,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppTheme.inputBorder),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                Icons.place_rounded,
+                size: 18,
+                color: AppTheme.primaryBrand,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  '${place!.street}, ${place!.number} — '
+                  '${place!.neighborhood}, ${place!.city}',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _DetailLine extends StatelessWidget {
-  const _DetailLine({required this.label, required this.value});
+// ---------------------------------------------------------------------------
+// Detail row (label + value with icon)
+// ---------------------------------------------------------------------------
 
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
   final String label;
   final String value;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Text(
-        '$label: $value',
-        style: Theme.of(
-          context,
-        ).textTheme.bodyLarge?.copyWith(color: AppTheme.textPrimary),
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: AppTheme.textSecondary),
+          const SizedBox(width: 10),
+          SizedBox(
+            width: 90,
+            child: Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppTheme.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Inline error
+// ---------------------------------------------------------------------------
 
 class _InlineError extends StatelessWidget {
   const _InlineError({required this.message});
@@ -585,24 +937,27 @@ class _InlineError extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: const Color(0xFFFFF1EE),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFF0C5BB)),
       ),
-      child: Text(
-        message,
-        style: Theme.of(
-          context,
-        ).textTheme.bodyMedium?.copyWith(color: const Color(0xFF8D3F2B)),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.error_outline_rounded,
+            size: 18,
+            color: Color(0xFF8D3F2B),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: const Color(0xFF8D3F2B),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
-
-final BoxDecoration _cardDecoration = BoxDecoration(
-  color: Colors.white,
-  borderRadius: BorderRadius.circular(16),
-  border: Border.all(color: AppTheme.inputBorder),
-  boxShadow: const [
-    BoxShadow(color: Color(0x06000000), blurRadius: 20, offset: Offset(0, 8)),
-  ],
-);
