@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/auth_scope.dart';
+import '../../../../app/navigation/app_routes.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../domain/places_repository.dart';
 import '../widgets/place_discovery_section.dart';
@@ -31,6 +32,12 @@ class PlacesPage extends StatelessWidget {
               repository: repository,
               accessTokenProvider: () => sessionController.session?.accessToken,
               currentUserName: userName,
+              onReviewPlaceSelected: (place) {
+                Navigator.of(context).pushNamed(
+                  AppRoutes.reviews,
+                  arguments: ReviewsRouteArgs(initialPlace: place),
+                );
+              },
             ),
           ),
         ),
