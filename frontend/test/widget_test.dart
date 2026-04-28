@@ -10,7 +10,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('ForkScore'), findsOneWidget);
-    expect(find.text('ENTRAR'), findsOneWidget);
+    expect(find.text('Entrar'), findsOneWidget);
     expect(find.text('Criar nova conta'), findsOneWidget);
   });
 
@@ -33,7 +33,7 @@ void main() {
         find.byKey(const Key('login-password-field')),
         'super-secret-123',
       );
-      await tester.tap(find.text('ENTRAR'));
+      await tester.tap(find.text('Entrar'));
       await tester.pumpAndSettle();
 
       expect(find.text('Pesquisa de Lugares'), findsOneWidget);
@@ -63,10 +63,6 @@ void main() {
       'rafa@example.com',
     );
     await tester.enterText(
-      find.byKey(const Key('register-birth-date-field')),
-      '01/01/1990',
-    );
-    await tester.enterText(
       find.byKey(const Key('register-password-field')),
       'super-secret-123',
     );
@@ -75,14 +71,14 @@ void main() {
       'super-secret-123',
     );
 
-    await tester.ensureVisible(find.text('CRIAR CONTA').last);
-    await tester.tap(find.text('CRIAR CONTA').last);
+    await tester.ensureVisible(find.text('Criar Conta').last);
+    await tester.tap(find.text('Criar Conta').last);
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Rafa Vecchiato'), findsWidgets);
-    expect(find.text('SAIR'), findsOneWidget);
+    expect(find.text('Sair'), findsOneWidget);
 
-    await tester.tap(find.text('SAIR'));
+    await tester.tap(find.text('Sair'));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('login-email-field')), findsOneWidget);
@@ -103,10 +99,10 @@ void main() {
       find.byKey(const Key('login-password-field')),
       'super-secret-123',
     );
-    await tester.tap(find.text('ENTRAR'));
+    await tester.tap(find.text('Entrar'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('PERFIL'));
+    await tester.tap(find.text('Perfil'));
     await tester.pumpAndSettle();
 
     expect(find.text('Perfil'), findsWidgets);
@@ -119,8 +115,8 @@ void main() {
       await tester.pumpWidget(const ForkScoreApp());
       await tester.pumpAndSettle();
 
-      await tester.ensureVisible(find.text('ENTRAR').first);
-      await tester.tap(find.text('ENTRAR').first);
+      await tester.ensureVisible(find.text('Entrar').first);
+      await tester.tap(find.text('Entrar').first);
       await tester.pumpAndSettle();
 
       expect(find.text('Preencha email e senha para entrar.'), findsOneWidget);
@@ -135,12 +131,12 @@ void main() {
         find.byKey(const Key('login-password-field')),
         'super-secret-123',
       );
-      await tester.ensureVisible(find.text('ENTRAR').first);
-      await tester.tap(find.text('ENTRAR').first);
+      await tester.ensureVisible(find.text('Entrar').first);
+      await tester.tap(find.text('Entrar').first);
       await tester.pumpAndSettle();
 
-      await tester.ensureVisible(find.text('NOVA AVALIACAO'));
-      await tester.tap(find.text('NOVA AVALIACAO'));
+      await tester.ensureVisible(find.text('Buscar Locais'));
+      await tester.tap(find.text('Buscar Locais'));
       await tester.pumpAndSettle();
 
       expect(find.text('Pesquisa de Lugares'), findsOneWidget);
@@ -164,7 +160,7 @@ void main() {
       find.byKey(const Key('login-password-field')),
       'super-secret-123',
     );
-    await tester.tap(find.text('ENTRAR'));
+    await tester.tap(find.text('Entrar'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('new-establishment-button')));
@@ -189,7 +185,7 @@ void main() {
       find.byKey(const Key('login-password-field')),
       'super-secret-123',
     );
-    await tester.tap(find.text('ENTRAR'));
+    await tester.tap(find.text('Entrar'));
     await tester.pumpAndSettle();
 
     await tester.ensureVisible(find.text('Buscar Locais'));

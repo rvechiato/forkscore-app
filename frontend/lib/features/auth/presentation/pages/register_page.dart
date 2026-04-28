@@ -18,7 +18,6 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
-  final _birthDateController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
@@ -28,7 +27,6 @@ class _RegisterPageState extends State<RegisterPage> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _birthDateController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -64,7 +62,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           child: _RegisterFormCard(
                             nameController: _nameController,
                             emailController: _emailController,
-                            birthDateController: _birthDateController,
                             passwordController: _passwordController,
                             confirmPasswordController:
                                 _confirmPasswordController,
@@ -91,7 +88,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   : _RegisterFormCard(
                       nameController: _nameController,
                       emailController: _emailController,
-                      birthDateController: _birthDateController,
                       passwordController: _passwordController,
                       confirmPasswordController: _confirmPasswordController,
                       obscurePassword: _obscurePassword,
@@ -119,7 +115,6 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> _submit() async {
     if (_nameController.text.trim().isEmpty ||
         _emailController.text.trim().isEmpty ||
-        _birthDateController.text.trim().isEmpty ||
         _passwordController.text.trim().isEmpty ||
         _confirmPasswordController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -218,7 +213,6 @@ class _RegisterFormCard extends StatelessWidget {
   const _RegisterFormCard({
     required this.nameController,
     required this.emailController,
-    required this.birthDateController,
     required this.passwordController,
     required this.confirmPasswordController,
     required this.obscurePassword,
@@ -232,7 +226,6 @@ class _RegisterFormCard extends StatelessWidget {
 
   final TextEditingController nameController;
   final TextEditingController emailController;
-  final TextEditingController birthDateController;
   final TextEditingController passwordController;
   final TextEditingController confirmPasswordController;
   final bool obscurePassword;
@@ -307,15 +300,6 @@ class _RegisterFormCard extends StatelessWidget {
                 label: 'Email',
                 hintText: 'seunome@email.com',
                 keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 14),
-              ForkScoreTextField(
-                key: const Key('register-birth-date-field'),
-                controller: birthDateController,
-                label: 'Data de Nascimento',
-                hintText: 'dd/mm/aaaa',
-                suffixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
-                keyboardType: TextInputType.datetime,
               ),
               const SizedBox(height: 14),
               ForkScoreTextField(
