@@ -4,10 +4,19 @@ import '../../../../app/auth_scope.dart';
 import '../../../../app/navigation/app_routes.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/widgets/forkscore_logo.dart';
+import '../../../places/domain/places_repository.dart';
+import '../../../places/presentation/widgets/place_discovery_section.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key, required this.repository});
 
+  final PlacesRepository repository;
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final sessionController = SessionScope.of(context);
@@ -28,7 +37,7 @@ class HomePage extends StatelessWidget {
             ),
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 960),
+                constraints: const BoxConstraints(maxWidth: 1180),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -42,75 +51,44 @@ class HomePage extends StatelessWidget {
                         );
                       },
                     ),
-                    const SizedBox(height: 64),
-
-                    // Hero — limpo e tipográfico
+                    const SizedBox(height: 56),
                     Text(
                       'Bem-vindo, $userName.',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: AppTheme.textSecondary,
                       ),
                     ),
-
-                    const SizedBox(height: 64),
-                    const Divider(),
-                    const SizedBox(height: 40),
-
-                    // Acesso Rápido — tiles horizontais, limpos
-                    _SectionTitle(title: 'Acesso Rapido'),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _QuickAccessTile(
-                            icon: Icons.search_rounded,
-                            label: 'Buscar Locais',
-                            subtitle: 'Encontre e avalie',
-                            onTap: () => Navigator.of(
-                              context,
-                            ).pushNamed(AppRoutes.places),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _QuickAccessTile(
-                            icon: Icons.rate_review_outlined,
-                            label: 'Minhas Avaliacoes',
-                            subtitle: 'Historico completo',
-                            onTap: () => Navigator.of(
-                              context,
-                            ).pushNamed(AppRoutes.reviews),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _QuickAccessTile(
-                            icon: Icons.bookmark_border_rounded,
-                            label: 'Favoritos',
-                            subtitle: 'Lugares salvos',
-                            onTap: () {},
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 12),
+                    Text(
+                      'Pesquise, escolha um lugar e mantenha o fluxo principal '
+                      'do MVP direto na home.',
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(color: AppTheme.textPrimary),
                     ),
-
-                    const SizedBox(height: 56),
-
-                    // Categorias em Destaque
-                    _SectionTitle(title: 'Categorias em Destaque'),
-                    const SizedBox(height: 20),
-                    const _CategoryRow(
-                      label: 'Alta Gastronomia',
-                      count: '142 locais',
+                    const SizedBox(height: 12),
+                    Text(
+                      'A busca agora vive aqui: voce pode encontrar lugares, '
+                      'abrir um novo estabelecimento e deixar a estrutura '
+                      'pronta para favoritos no futuro.',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: AppTheme.textSecondary,
+                      ),
                     ),
-                    const _CategoryRow(
-                      label: 'Cafeterias Acolhedoras',
-                      count: '85 locais',
+                    const SizedBox(height: 32),
+                    PlacesDiscoverySection(
+                      repository: widget.repository,
+                      accessTokenProvider: () =>
+                          sessionController.session?.accessToken,
+                      currentUserName: userName,
+                      eyebrow: 'Home autenticada',
+                      title: 'Encontre o lugar certo sem sair da home',
+                      description:
+                          'Use a busca para localizar um lugar ja cadastrado '
+                          'ou crie um novo estabelecimento antes de avaliar.',
+                      showHeroDivider: false,
                     ),
-                    const _CategoryRow(
-                      label: 'Cozinha Internacional',
-                      count: '64 locais',
-                    ),
+                    const SizedBox(height: 32),
+                    const _FavoritesPlaceholder(),
                   ],
                 ),
               ),
@@ -139,6 +117,14 @@ class _TopNav extends StatelessWidget {
           wordmarkSize: 18,
         ),
         const Spacer(),
+        Text(
+          userName,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: AppTheme.textSecondary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(width: 16),
         TextButton(
           onPressed: () => Navigator.of(context).pushNamed(AppRoutes.profile),
           child: const Text('Perfil'),
@@ -150,110 +136,38 @@ class _TopNav extends StatelessWidget {
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title});
-
-  final String title;
+class _FavoritesPlaceholder extends StatelessWidget {
+  const _FavoritesPlaceholder();
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-        color: AppTheme.textSecondary,
-        fontWeight: FontWeight.w600,
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.inputBorder),
       ),
-    );
-  }
-}
-
-class _QuickAccessTile extends StatelessWidget {
-  const _QuickAccessTile({
-    required this.icon,
-    required this.label,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.inputBorder),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, size: 24, color: AppTheme.primaryBrand),
-            const SizedBox(height: 16),
-            Text(
-              label,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CategoryRow extends StatelessWidget {
-  const _CategoryRow({required this.label, required this.count});
-
-  final String label;
-  final String count;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 18),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
-              Text(
-                count,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
-              ),
-              const SizedBox(width: 8),
-              Icon(
-                Icons.chevron_right_rounded,
-                size: 20,
-                color: AppTheme.inputBorderDark,
-              ),
-            ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Espaco reservado para favoritos',
+            style: theme.textTheme.titleLarge,
           ),
-        ),
-        const Divider(height: 1),
-      ],
+          const SizedBox(height: 8),
+          Text(
+            'Quando o MVP evoluir, esta area podera destacar lugares salvos '
+            'pelo usuario sem exigir nova mudanca estrutural na home.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppTheme.textSecondary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

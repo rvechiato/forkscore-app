@@ -59,7 +59,10 @@ class AppRouter {
           redirectAfterAuth: _registerArgs(arguments).redirectAfterAuth,
         ),
       ),
-      AppRoutes.home => const HomePage(key: ValueKey('home-page')),
+      AppRoutes.home => HomePage(
+        key: const ValueKey('home-page'),
+        repository: _placesRepository,
+      ),
       AppRoutes.profile => const ProtectedPlaceholderPage(
         title: 'Perfil',
         description:
