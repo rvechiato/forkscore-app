@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../features/auth/presentation/pages/auth_shell_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/presentation/pages/profile_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/places/domain/places_repository.dart';
@@ -10,7 +11,6 @@ import '../../features/reviews/domain/reviews_repository.dart';
 import '../../features/reviews/presentation/pages/reviews_page.dart';
 import 'app_route_guard.dart';
 import 'app_routes.dart';
-import 'protected_placeholder_page.dart';
 
 class AppRouter {
   AppRouter({
@@ -70,11 +70,7 @@ class AppRouter {
         repository: _placesRepository,
         reviewsRepository: _reviewsRepository,
       ),
-      AppRoutes.profile => const ProtectedPlaceholderPage(
-        title: 'Perfil',
-        description:
-            'Aqui entra o fluxo do perfil autenticado do usuario no MVP.',
-      ),
+      AppRoutes.profile => const ProfilePage(),
       AppRoutes.places => PlacesPage(
         key: const ValueKey('places-page'),
         repository: _placesRepository,
