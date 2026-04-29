@@ -32,7 +32,10 @@ class GetPlaceReviewsSummary:
         total_reviews = len(reviews)
         average_rating = None
         if total_reviews > 0:
-            average_rating = sum(review.overall_rating for review in reviews) / total_reviews
+            average_rating = round(
+                sum(review.overall_rating for review in reviews) / total_reviews,
+                2,
+            )
 
         recent_reviews = []
         for review in reviews[:3]:
