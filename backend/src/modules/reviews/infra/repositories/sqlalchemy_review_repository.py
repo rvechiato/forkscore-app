@@ -1,5 +1,6 @@
 from uuid import uuid4
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.modules.reviews.domain.entities.review import Review
@@ -38,3 +39,12 @@ class SqlAlchemyReviewRepository(ReviewRepository):
         self._session.commit()
         self._session.refresh(model)
         return model.to_entity()
+
+    def list_by_place_id(self, place_id: str) -> list[Review]:
+        statement = (
+            select(ReviewModel)
+            .where(ReviewModel.place_id == place_id)
+            .order_by(ReviewModel.created_at.desc())
+        )
+        models = self._session.execute(statement).scalars().all()
+        return [model.to_entity() for model in models]

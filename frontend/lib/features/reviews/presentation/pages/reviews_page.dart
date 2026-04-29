@@ -60,7 +60,9 @@ class _ReviewsPageState extends State<ReviewsPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
-        title: Text(_selectedPlace == null ? 'Escolha o local' : 'Nova avaliacao'),
+        title: Text(
+          _selectedPlace == null ? 'Escolha o local' : 'Nova avaliacao',
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
@@ -70,6 +72,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
             child: _selectedPlace == null
                 ? PlacesDiscoverySection(
                     repository: widget.placesRepository,
+                    reviewsRepository: widget.reviewsRepository,
                     accessTokenProvider: () =>
                         sessionController.session?.accessToken,
                     currentUserName: userName,
@@ -129,7 +132,8 @@ class _ReviewComposer extends StatefulWidget {
 
 class _ReviewComposerState extends State<_ReviewComposer> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  late final Map<ReviewCriterionCode, TextEditingController> _commentControllers;
+  late final Map<ReviewCriterionCode, TextEditingController>
+  _commentControllers;
   late final Map<ReviewCriterionCode, TextEditingController>
   _justificationControllers;
   final Map<ReviewCriterionCode, int?> _ratings = <ReviewCriterionCode, int?>{};
@@ -276,20 +280,18 @@ class _ReviewComposerState extends State<_ReviewComposer> {
   }
 
   int get _completedCriteriaCount {
-    return ReviewCriterionCode.orderedValues
-        .where((code) {
-          final rating = _ratings[code];
-          final comment = _commentControllers[code]!.text.trim();
-          final justification = _justificationControllers[code]!.text.trim();
-          if (rating == null || comment.isEmpty) {
-            return false;
-          }
-          if (rating < 3 && justification.isEmpty) {
-            return false;
-          }
-          return true;
-        })
-        .length;
+    return ReviewCriterionCode.orderedValues.where((code) {
+      final rating = _ratings[code];
+      final comment = _commentControllers[code]!.text.trim();
+      final justification = _justificationControllers[code]!.text.trim();
+      if (rating == null || comment.isEmpty) {
+        return false;
+      }
+      if (rating < 3 && justification.isEmpty) {
+        return false;
+      }
+      return true;
+    }).length;
   }
 
   Future<void> _submit() async {

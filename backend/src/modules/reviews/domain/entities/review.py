@@ -72,3 +72,10 @@ class Review:
             raise ReviewValidationError("A review must contain all four required criteria.")
         if len(set(received_codes)) != len(REQUIRED_CRITERIA_CODES):
             raise ReviewValidationError("A review cannot repeat criteria.")
+
+    @property
+    def overall_rating(self) -> float:
+        """Return the simple overall rating used by the MVP read model."""
+
+        criteria_total = sum(criterion.rating for criterion in self.criteria)
+        return (criteria_total + self.cost_benefit_rating) / 5

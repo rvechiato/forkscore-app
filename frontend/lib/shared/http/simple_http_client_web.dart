@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use, avoid_web_libraries_in_flutter
 
+import 'dart:async';
 import 'dart:html' as html;
 
 import 'simple_http_client.dart';
@@ -37,17 +38,40 @@ class _WebHttpClient implements SimpleHttpClient {
     required Map<String, String> headers,
     String? body,
   }) async {
-    final response = await html.HttpRequest.request(
-      uri.toString(),
-      method: method,
-      sendData: body,
-      requestHeaders: headers,
-    );
+    final request = html.HttpRequest();
+    final completer = Completer<HttpResponseData>();
 
-    return HttpResponseData(
-      statusCode: response.status ?? 0,
-      body: response.responseText ?? '',
-    );
+    request
+      ..open(method, uri.toString())
+      ..responseType = 'text';
+
+    headers.forEach(request.setRequestHeader);
+
+    request.onLoadEnd.listen((_) {
+      if (completer.isCompleted) {
+        return;
+      }
+
+      completer.complete(
+        HttpResponseData(
+          statusCode: request.status ?? 0,
+          body: request.responseText ?? '',
+        ),
+      );
+    });
+
+    request.onError.listen((_) {
+      if (completer.isCompleted) {
+        return;
+      }
+
+      completer.completeError(
+        StateError('Falha de rede ao chamar ${uri.toString()}.'),
+      );
+    });
+
+    request.send(body);
+    return completer.future;
   }
 }
 
