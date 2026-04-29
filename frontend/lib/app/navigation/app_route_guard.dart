@@ -27,6 +27,10 @@ class _AppRouteGuardState extends State<AppRouteGuard> {
   @override
   Widget build(BuildContext context) {
     final sessionController = SessionScope.of(context);
+    if (sessionController.isRestoring) {
+      return const SizedBox.shrink();
+    }
+
     final redirectTarget = _redirectTargetFor(
       sessionController.isAuthenticated,
     );

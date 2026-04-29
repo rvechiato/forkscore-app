@@ -68,11 +68,13 @@ class AppRouter {
       AppRoutes.home => HomePage(
         key: const ValueKey('home-page'),
         repository: _placesRepository,
+        reviewsRepository: _reviewsRepository,
       ),
       AppRoutes.profile => const ProfilePage(),
       AppRoutes.places => PlacesPage(
         key: const ValueKey('places-page'),
         repository: _placesRepository,
+        reviewsRepository: _reviewsRepository,
       ),
       AppRoutes.reviews => ReviewsPage(
         key: const ValueKey('reviews-page'),
@@ -98,8 +100,6 @@ class AppRouter {
   }
 
   ReviewsRouteArgs _reviewsArgs(Object? arguments) {
-    return arguments is ReviewsRouteArgs
-        ? arguments
-        : const ReviewsRouteArgs();
+    return arguments is ReviewsRouteArgs ? arguments : const ReviewsRouteArgs();
   }
 }

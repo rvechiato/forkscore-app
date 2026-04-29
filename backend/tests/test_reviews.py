@@ -1,6 +1,11 @@
 from src.modules.places.infra.database.bootstrap import slugify_taxonomy, taxonomy_id
 
 
+from datetime import UTC, datetime
+
+from src.modules.reviews.infra.database.models import ReviewModel
+
+
 def _category_id(name: str) -> str:
     return taxonomy_id("category", slugify_taxonomy(name))
 
@@ -83,18 +88,30 @@ def _valid_review_payload() -> dict:
     }
 
 
+def _create_review(client, token: str, place_id: str, payload: dict | None = None) -> dict:
+    response = client.post(
+        f"/places/{place_id}/reviews",
+        headers={"Authorization": f"Bearer {token}"},
+        json=_valid_review_payload() if payload is None else payload,
+    )
+    assert response.status_code == 201
+    return response.json()
+
+
+def _set_review_created_at(db_session, review_id: str, created_at: datetime) -> None:
+    review = db_session.get(ReviewModel, review_id)
+    assert review is not None
+    review.created_at = created_at
+    review.updated_at = created_at
+    db_session.add(review)
+    db_session.commit()
+
+
 def test_create_review_returns_created_review(client) -> None:
     token, user = _register_and_get_token(client)
     place = _create_place(client, token)
 
-    response = client.post(
-        f"/places/{place['id']}/reviews",
-        headers={"Authorization": f"Bearer {token}"},
-        json=_valid_review_payload(),
-    )
-
-    assert response.status_code == 201
-    body = response.json()
+    body = _create_review(client, token, place["id"])
     assert body["place_id"] == place["id"]
     assert body["user"]["id"] == user["id"]
     assert body["user"]["name"] == user["name"]
@@ -173,20 +190,127 @@ def test_create_review_accepts_multiple_reviews_for_same_user_and_place(client) 
     token, _ = _register_and_get_token(client)
     place = _create_place(client, token)
 
-    first_response = client.post(
-        f"/places/{place['id']}/reviews",
-        headers={"Authorization": f"Bearer {token}"},
-        json=_valid_review_payload(),
-    )
+    first_response = _create_review(client, token, place["id"])
     second_payload = _valid_review_payload()
     second_payload["recommendation"] = "not_recommended"
-    second_response = client.post(
-        f"/places/{place['id']}/reviews",
+    second_response = _create_review(client, token, place["id"], second_payload)
+
+    assert first_response["id"] != second_response["id"]
+    assert second_response["recommendation"] == "not_recommended"
+
+
+def test_get_place_reviews_summary_returns_empty_state(client) -> None:
+    token, _ = _register_and_get_token(client)
+    place = _create_place(client, token)
+
+    response = client.get(
+        f"/places/{place['id']}/reviews/summary",
         headers={"Authorization": f"Bearer {token}"},
-        json=second_payload,
     )
 
-    assert first_response.status_code == 201
-    assert second_response.status_code == 201
-    assert first_response.json()["id"] != second_response.json()["id"]
-    assert second_response.json()["recommendation"] == "not_recommended"
+    assert response.status_code == 200
+    assert response.json() == {
+        "place_id": place["id"],
+        "total_reviews": 0,
+        "average_rating": None,
+        "recent_reviews": [],
+    }
+
+
+def test_get_place_reviews_summary_returns_404_for_unknown_place(client) -> None:
+    token, _ = _register_and_get_token(client)
+
+    response = client.get(
+        "/places/00000000-0000-0000-0000-000000000000/reviews/summary",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Place not found."
+
+
+def test_get_place_reviews_summary_returns_average_and_recent_reviews(client, db_session) -> None:
+    owner_token, _ = _register_and_get_token(client)
+    reviewer_two_token, _ = _register_and_get_token(
+        client,
+        name="Joana Silva",
+        email="joana@example.com",
+    )
+    reviewer_three_token, _ = _register_and_get_token(
+        client,
+        name="Carlos Souza",
+        email="carlos@example.com",
+    )
+    reviewer_four_token, _ = _register_and_get_token(
+        client,
+        name="Marina Lima",
+        email="marina@example.com",
+    )
+    place = _create_place(client, owner_token)
+
+    payload_one = _valid_review_payload()
+    payload_two = _valid_review_payload()
+    payload_two["cost_benefit_rating"] = 5
+    payload_two["criteria"][0]["rating"] = 4
+    payload_two["criteria"][1]["rating"] = 4
+    payload_two["criteria"][2]["rating"] = 4
+    payload_two["criteria"][3]["rating"] = 4
+    payload_two["criteria"][1]["comment"] = "Servico rapido e cordial."
+    payload_two["recommendation"] = "recommended"
+
+    payload_three = _valid_review_payload()
+    payload_three["cost_benefit_rating"] = 2
+    payload_three["criteria"][0]["rating"] = 2
+    payload_three["criteria"][0]["justification"] = "Sabor inconsistente na visita."
+    payload_three["criteria"][1]["rating"] = 3
+    payload_three["criteria"][2]["rating"] = 3
+    payload_three["criteria"][3]["rating"] = 2
+    payload_three["criteria"][3]["justification"] = "Espaco apertado e pouco confortavel."
+    payload_three["recommendation"] = "not_recommended"
+
+    payload_four = _valid_review_payload()
+    payload_four["cost_benefit_rating"] = 1
+    payload_four["criteria"][0]["rating"] = 1
+    payload_four["criteria"][0]["justification"] = "Receita desequilibrada."
+    payload_four["criteria"][1]["rating"] = 2
+    payload_four["criteria"][1]["justification"] = "Atendimento confuso."
+    payload_four["criteria"][2]["rating"] = 2
+    payload_four["criteria"][2]["justification"] = "Cardapio repetitivo."
+    payload_four["criteria"][3]["rating"] = 2
+    payload_four["criteria"][3]["justification"] = "Mesas sem manutencao."
+    payload_four["recommendation"] = "not_recommended"
+
+    review_one = _create_review(client, owner_token, place["id"], payload_one)
+    review_two = _create_review(client, reviewer_two_token, place["id"], payload_two)
+    review_three = _create_review(client, reviewer_three_token, place["id"], payload_three)
+    review_four = _create_review(client, reviewer_four_token, place["id"], payload_four)
+
+    _set_review_created_at(db_session, review_one["id"], datetime(2026, 4, 28, 12, 0, tzinfo=UTC))
+    _set_review_created_at(db_session, review_two["id"], datetime(2026, 4, 28, 13, 0, tzinfo=UTC))
+    _set_review_created_at(db_session, review_three["id"], datetime(2026, 4, 28, 14, 0, tzinfo=UTC))
+    _set_review_created_at(db_session, review_four["id"], datetime(2026, 4, 28, 15, 0, tzinfo=UTC))
+
+    response = client.get(
+        f"/places/{place['id']}/reviews/summary",
+        headers={"Authorization": f"Bearer {owner_token}"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["place_id"] == place["id"]
+    assert body["total_reviews"] == 4
+    assert body["average_rating"] == 2.95
+    assert [item["id"] for item in body["recent_reviews"]] == [
+        review_four["id"],
+        review_three["id"],
+        review_two["id"],
+    ]
+    assert body["recent_reviews"][0]["user"]["name"] == "Marina Lima"
+    assert body["recent_reviews"][0]["recommendation"] == "not_recommended"
+    assert body["recent_reviews"][0]["overall_rating"] == 1.6
+    assert [criterion["code"] for criterion in body["recent_reviews"][0]["criteria"]] == [
+        "taste",
+        "service",
+        "options",
+        "infrastructure",
+    ]

@@ -31,9 +31,7 @@ class SubmittedReview {
       ),
       costBenefitRating: payload['cost_benefit_rating'] as int,
       criteria: (payload['criteria'] as List<dynamic>)
-          .map(
-            (item) => ReviewCriterion.fromJson(item as Map<String, dynamic>),
-          )
+          .map((item) => ReviewCriterion.fromJson(item as Map<String, dynamic>))
           .toList(growable: false),
       createdAt: DateTime.parse(payload['created_at'] as String),
     );
