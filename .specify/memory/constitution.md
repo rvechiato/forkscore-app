@@ -259,6 +259,7 @@ Este documento serve como **fundação imutável** para decisões técnicas futu
 - ✅ Estado management centralizador (Provider, Riverpod, ou similar)
 - ✅ Não fazer requisições diretas a BD; sempre via API Backend
 - ✅ Copy de layout deve ser orientada à ação do usuário e ao produto, nunca a descrições técnicas, estruturais ou metaexplicações sobre o próprio fluxo/tela
+- ✅ Páginas voltadas ao usuário não devem exibir explicações técnicas como backend, API, arquitetura, sessão, mocks, fonte de verdade interna ou detalhes de implementação
 - ✅ Evitar textos auxiliares desnecessários em áreas principais da interface; quando houver copy, ela deve ser curta, clara e útil para a tarefa imediata
 - ✅ Testes: widget + integração
 - ✅ Navegação centralizada em rotas nomeadas, sem fluxo crítico escondido em estado local de tela

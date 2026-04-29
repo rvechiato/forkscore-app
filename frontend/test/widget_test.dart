@@ -105,8 +105,8 @@ void main() {
     await tester.tap(find.text('Perfil'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Perfil'), findsWidgets);
-    expect(find.textContaining('Area protegida'), findsOneWidget);
+    expect(find.byKey(const Key('profile-page')), findsOneWidget);
+    expect(find.byKey(const Key('profile-name-field')), findsOneWidget);
   });
 
   testWidgets('home autenticada concentra busca e lista de lugares no MVP', (
@@ -168,7 +168,9 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(1440, 2200));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(const ForkScoreApp(initialRoute: AppRoutes.reviews));
+    await tester.pumpWidget(
+      const ForkScoreApp(initialRoute: AppRoutes.reviews),
+    );
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -209,7 +211,9 @@ void main() {
       'Faltaram opcoes vegetarianas e sem lactose.',
     );
 
-    await tester.tap(find.byKey(const Key('criterion-rating-infrastructure-3')));
+    await tester.tap(
+      find.byKey(const Key('criterion-rating-infrastructure-3')),
+    );
     await tester.enterText(
       find.byKey(const Key('criterion-comment-infrastructure')),
       'Ambiente confortavel e limpo.',
