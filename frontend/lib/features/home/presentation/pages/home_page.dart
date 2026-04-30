@@ -6,17 +6,11 @@ import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/widgets/forkscore_logo.dart';
 import '../../../places/domain/places_repository.dart';
 import '../../../places/presentation/widgets/place_discovery_section.dart';
-import '../../../reviews/domain/reviews_repository.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({
-    super.key,
-    required this.repository,
-    required this.reviewsRepository,
-  });
+  const HomePage({super.key, required this.repository});
 
   final PlacesRepository repository;
-  final ReviewsRepository reviewsRepository;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -67,14 +61,14 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: 32),
                     PlacesDiscoverySection(
                       repository: widget.repository,
-                      reviewsRepository: widget.reviewsRepository,
                       accessTokenProvider: () =>
                           sessionController.session?.accessToken,
                       currentUserName: userName,
-                      onReviewPlaceSelected: (place) {
+                      showInlineDetail: false,
+                      onPlaceSelected: (place) {
                         Navigator.of(context).pushNamed(
-                          AppRoutes.reviews,
-                          arguments: ReviewsRouteArgs(initialPlace: place),
+                          AppRoutes.placeReviews,
+                          arguments: PlaceReviewsRouteArgs(placeId: place.id),
                         );
                       },
                       title: 'Escolha, experimente e avalie',
@@ -83,8 +77,6 @@ class _HomePageState extends State<HomePage> {
                       description: '',
                       showHeroDivider: false,
                     ),
-                    const SizedBox(height: 32),
-                    const _FavoritesPlaceholder(),
                   ],
                 ),
               ),
@@ -128,42 +120,6 @@ class _TopNav extends StatelessWidget {
         const SizedBox(width: 8),
         TextButton(onPressed: onLogout, child: const Text('Sair')),
       ],
-    );
-  }
-}
-
-class _FavoritesPlaceholder extends StatelessWidget {
-  const _FavoritesPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.inputBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Espaco reservado para favoritos',
-            style: theme.textTheme.titleLarge,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Quando o MVP evoluir, esta area podera destacar lugares salvos '
-            'pelo usuario sem exigir nova mudanca estrutural na home.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppTheme.textSecondary,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

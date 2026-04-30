@@ -8,19 +8,27 @@ abstract final class AppRoutes {
   static const home = '/home';
   static const profile = '/profile';
   static const places = '/places';
+  static const placeReviews = '/places/reviews';
   static const reviews = '/reviews';
 
   static const publicRoutes = <String>{login, register};
 
-  static const protectedRoutes = <String>{home, profile, places, reviews};
+  static const protectedRoutes = <String>{
+    home,
+    profile,
+    places,
+    placeReviews,
+    reviews,
+  };
 
   static const all = <String>{...publicRoutes, ...protectedRoutes};
 }
 
 class LoginRouteArgs {
-  const LoginRouteArgs({this.redirectAfterLogin});
+  const LoginRouteArgs({this.redirectAfterLogin, this.redirectArguments});
 
   final String? redirectAfterLogin;
+  final Object? redirectArguments;
 }
 
 class RegisterRouteArgs {
@@ -32,5 +40,12 @@ class RegisterRouteArgs {
 class ReviewsRouteArgs {
   const ReviewsRouteArgs({this.initialPlace});
 
+  final PlaceDetail? initialPlace;
+}
+
+class PlaceReviewsRouteArgs {
+  const PlaceReviewsRouteArgs({required this.placeId, this.initialPlace});
+
+  final String placeId;
   final PlaceDetail? initialPlace;
 }

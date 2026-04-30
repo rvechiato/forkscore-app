@@ -57,6 +57,22 @@ class MockReviewsRepository implements ReviewsRepository {
   }
 
   @override
+  Future<List<RecentPlaceReview>> listPlaceReviews({
+    required String accessToken,
+    required String placeId,
+  }) async {
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+
+    final placeReviews =
+        _submittedReviews
+            .where((review) => review.placeId == placeId)
+            .toList(growable: false)
+          ..sort((left, right) => right.createdAt.compareTo(left.createdAt));
+
+    return placeReviews.map(_mapRecentReview).toList(growable: false);
+  }
+
+  @override
   Future<SubmittedReview> submitReview({
     required String accessToken,
     required String placeId,

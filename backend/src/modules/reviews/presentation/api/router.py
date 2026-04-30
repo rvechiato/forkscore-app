@@ -5,6 +5,7 @@ from src.modules.auth.presentation.api.dependencies import get_current_user
 from src.modules.places.domain.errors import PlaceNotFoundError
 from src.modules.reviews.application.dtos import (
     CreateReviewInput,
+    PlaceReviewsOutput,
     PlaceReviewsSummaryOutput,
     ReviewOutput,
 )
@@ -12,9 +13,13 @@ from src.modules.reviews.application.use_cases.create_review import CreateReview
 from src.modules.reviews.application.use_cases.get_place_reviews_summary import (
     GetPlaceReviewsSummary,
 )
+from src.modules.reviews.application.use_cases.list_place_reviews import (
+    ListPlaceReviews,
+)
 from src.modules.reviews.domain.errors import ReviewValidationError
 from src.modules.reviews.presentation.api.dependencies import (
     get_create_review_use_case,
+    get_list_place_reviews_use_case,
     get_place_reviews_summary_use_case,
 )
 
@@ -34,6 +39,28 @@ def get_place_reviews_summary(
     use_case: GetPlaceReviewsSummary = Depends(get_place_reviews_summary_use_case),
 ) -> PlaceReviewsSummaryOutput:
     """Return the MVP review summary for the selected place."""
+
+    try:
+        return use_case.execute(place_id)
+    except PlaceNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+
+
+@router.get(
+    "/{place_id}/reviews",
+    response_model=PlaceReviewsOutput,
+    status_code=status.HTTP_200_OK,
+    summary="Listar reviews de um local",
+)
+def list_place_reviews(
+    place_id: str,
+    _: User = Depends(get_current_user),
+    use_case: ListPlaceReviews = Depends(get_list_place_reviews_use_case),
+) -> PlaceReviewsOutput:
+    """Return all MVP reviews for the selected place."""
 
     try:
         return use_case.execute(place_id)

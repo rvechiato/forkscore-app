@@ -90,4 +90,12 @@ class _FakeReviewsRepository implements ReviewsRepository {
   }) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<RecentPlaceReview>> listPlaceReviews({
+    required String accessToken,
+    required String placeId,
+  }) {
+    throw UnimplementedError();
+  }
 }

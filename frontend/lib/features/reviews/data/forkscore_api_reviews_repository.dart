@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import '../../../shared/http/simple_http_client.dart';
 import '../domain/models/place_review_summary.dart';
+import '../domain/models/recent_place_review.dart';
 import '../domain/models/submitted_review.dart';
 import '../domain/models/review_submission_request.dart';
 import '../domain/reviews_repository.dart';
@@ -32,6 +33,28 @@ class ForkScoreApiReviewsRepository implements ReviewsRepository {
       fallbackMessage: 'Nao foi possivel carregar o resumo de reviews.',
     );
     return PlaceReviewSummary.fromJson(body);
+  }
+
+  @override
+  Future<List<RecentPlaceReview>> listPlaceReviews({
+    required String accessToken,
+    required String placeId,
+  }) async {
+    final response = await _client.get(
+      _resolve('/places/$placeId/reviews'),
+      headers: _authorizedHeaders(accessToken),
+    );
+    final body = _decodeBody(response);
+    _ensureSuccess(
+      response.statusCode,
+      body,
+      fallbackMessage: 'Nao foi possivel carregar as reviews.',
+    );
+
+    final reviews = body['reviews'] as List<dynamic>? ?? const [];
+    return reviews
+        .map((item) => RecentPlaceReview.fromJson(item as Map<String, dynamic>))
+        .toList(growable: false);
   }
 
   @override

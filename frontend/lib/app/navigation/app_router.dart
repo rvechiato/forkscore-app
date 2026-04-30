@@ -6,6 +6,7 @@ import '../../features/auth/presentation/pages/profile_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/places/domain/places_repository.dart';
+import '../../features/places/presentation/pages/place_reviews_page.dart';
 import '../../features/places/presentation/pages/places_page.dart';
 import '../../features/reviews/domain/reviews_repository.dart';
 import '../../features/reviews/presentation/pages/reviews_page.dart';
@@ -68,13 +69,19 @@ class AppRouter {
       AppRoutes.home => HomePage(
         key: const ValueKey('home-page'),
         repository: _placesRepository,
-        reviewsRepository: _reviewsRepository,
       ),
       AppRoutes.profile => const ProfilePage(),
       AppRoutes.places => PlacesPage(
         key: const ValueKey('places-page'),
         repository: _placesRepository,
         reviewsRepository: _reviewsRepository,
+      ),
+      AppRoutes.placeReviews => PlaceReviewsPage(
+        key: const ValueKey('place-reviews-page'),
+        placesRepository: _placesRepository,
+        reviewsRepository: _reviewsRepository,
+        placeId: _placeReviewsArgs(arguments).placeId,
+        initialPlace: _placeReviewsArgs(arguments).initialPlace,
       ),
       AppRoutes.reviews => ReviewsPage(
         key: const ValueKey('reviews-page'),
@@ -101,5 +108,11 @@ class AppRouter {
 
   ReviewsRouteArgs _reviewsArgs(Object? arguments) {
     return arguments is ReviewsRouteArgs ? arguments : const ReviewsRouteArgs();
+  }
+
+  PlaceReviewsRouteArgs _placeReviewsArgs(Object? arguments) {
+    return arguments is PlaceReviewsRouteArgs
+        ? arguments
+        : const PlaceReviewsRouteArgs(placeId: '');
   }
 }

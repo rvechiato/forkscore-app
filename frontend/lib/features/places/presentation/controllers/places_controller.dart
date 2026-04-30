@@ -11,11 +11,13 @@ class PlacesController extends ChangeNotifier {
   PlacesController({
     required PlacesRepository repository,
     required String? Function() accessTokenProvider,
+    this.selectFirstPlace = true,
   }) : _repository = repository,
        _accessTokenProvider = accessTokenProvider;
 
   final PlacesRepository _repository;
   final String? Function() _accessTokenProvider;
+  final bool selectFirstPlace;
 
   List<PlaceSummary> _places = const [];
   List<PlaceCategory> _categories = const [];
@@ -50,7 +52,7 @@ class PlacesController extends ChangeNotifier {
     try {
       final places = await _repository.listPlaces(accessToken: accessToken);
       _places = places;
-      if (_selectedPlace == null && places.isNotEmpty) {
+      if (selectFirstPlace && _selectedPlace == null && places.isNotEmpty) {
         await _loadPlaceDetail(accessToken, places.first.id, notify: false);
       }
     } on PlacesRepositoryException catch (error) {

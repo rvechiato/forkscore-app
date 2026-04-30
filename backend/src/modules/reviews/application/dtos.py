@@ -89,3 +89,10 @@ class PlaceReviewsSummaryOutput(BaseModel):
     total_reviews: int
     average_rating: float | None
     recent_reviews: list[RecentReviewOutput]
+
+
+class PlaceReviewsOutput(BaseModel):
+    """Read model returned for all reviews of a place."""
+
+    place_id: str
+    reviews: list[RecentReviewOutput]

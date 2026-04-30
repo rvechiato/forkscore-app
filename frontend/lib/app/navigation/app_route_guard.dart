@@ -62,30 +62,36 @@ class _AppRouteGuardState extends State<AppRouteGuard> {
     if (widget.access == AppRouteAccess.authenticated && !isAuthenticated) {
       return _RedirectTarget(
         routeName: AppRoutes.login,
-        arguments: LoginRouteArgs(redirectAfterLogin: widget.routeName),
+        arguments: LoginRouteArgs(
+          redirectAfterLogin: widget.routeName,
+          redirectArguments: widget.routeArguments,
+        ),
       );
     }
 
     if (widget.access == AppRouteAccess.publicOnly && isAuthenticated) {
-      return _RedirectTarget(
-        routeName: _authenticatedRedirectTarget,
-        arguments: null,
-      );
+      return _authenticatedRedirectTarget;
     }
 
     return null;
   }
 
-  String get _authenticatedRedirectTarget {
+  _RedirectTarget get _authenticatedRedirectTarget {
     if (widget.routeArguments case final LoginRouteArgs args?) {
-      return args.redirectAfterLogin ?? AppRoutes.home;
+      return _RedirectTarget(
+        routeName: args.redirectAfterLogin ?? AppRoutes.home,
+        arguments: args.redirectArguments,
+      );
     }
 
     if (widget.routeArguments case final RegisterRouteArgs args?) {
-      return args.redirectAfterAuth ?? AppRoutes.home;
+      return _RedirectTarget(
+        routeName: args.redirectAfterAuth ?? AppRoutes.home,
+        arguments: null,
+      );
     }
 
-    return AppRoutes.home;
+    return const _RedirectTarget(routeName: AppRoutes.home, arguments: null);
   }
 }
 
