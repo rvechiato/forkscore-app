@@ -34,60 +34,22 @@ class _LoginPageState extends State<LoginPage> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final useWideLayout = constraints.maxWidth >= 900;
-
         return SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(
-            useWideLayout ? 56 : 32,
-            useWideLayout ? 48 : 56,
-            useWideLayout ? 56 : 32,
-            36,
-          ),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1120),
-              child: useWideLayout
-                  ? Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Expanded(
-                          child: _AuthBrandPanel(
-                            title:
-                                'Avalie experiencias que realmente valem a pena.',
-                            description:
-                                'Registre sabor, atendimento e custo-beneficio em uma experiencia visual coerente com o universo ForkScore.',
-                          ),
-                        ),
-                        const SizedBox(width: 56),
-                        Expanded(
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: _LoginFormCard(
-                              emailController: _emailController,
-                              passwordController: _passwordController,
-                              obscure: _obscure,
-                              onToggleObscure: () {
-                                setState(() => _obscure = !_obscure);
-                              },
-                              onSubmit: _submit,
-                              onCreateAccount: _goToRegister,
-                              isBusy: sessionController.isBusy,
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : _LoginFormCard(
-                      emailController: _emailController,
-                      passwordController: _passwordController,
-                      obscure: _obscure,
-                      onToggleObscure: () {
-                        setState(() => _obscure = !_obscure);
-                      },
-                      onSubmit: _submit,
-                      onCreateAccount: _goToRegister,
-                      isBusy: sessionController.isBusy,
-                    ),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 36),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 72),
+            child: Center(
+              child: _LoginFormCard(
+                emailController: _emailController,
+                passwordController: _passwordController,
+                obscure: _obscure,
+                onToggleObscure: () {
+                  setState(() => _obscure = !_obscure);
+                },
+                onSubmit: _submit,
+                onCreateAccount: _goToRegister,
+                isBusy: sessionController.isBusy,
+              ),
             ),
           ),
         );
@@ -162,27 +124,23 @@ class _LoginFormCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final useCard = MediaQuery.sizeOf(context).width >= 900;
-
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 460),
       child: DecoratedBox(
-        decoration: useCard
-            ? BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.inputBorder),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x06000000),
-                    blurRadius: 20,
-                    offset: Offset(0, 8),
-                  ),
-                ],
-              )
-            : const BoxDecoration(),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.inputBorder),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x06000000),
+              blurRadius: 20,
+              offset: Offset(0, 8),
+            ),
+          ],
+        ),
         child: Padding(
-          padding: EdgeInsets.all(useCard ? 36 : 0),
+          padding: const EdgeInsets.all(36),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -196,6 +154,16 @@ class _LoginFormCard extends StatelessWidget {
                 style: Theme.of(
                   context,
                 ).textTheme.headlineLarge?.copyWith(letterSpacing: -0.3),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'the society',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppTheme.textSecondary,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
@@ -272,85 +240,6 @@ class _LoginFormCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _AuthBrandPanel extends StatelessWidget {
-  const _AuthBrandPanel({required this.title, required this.description});
-
-  final String title;
-  final String description;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(40),
-      decoration: BoxDecoration(
-        color: AppTheme.accentGreen.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: Theme.of(
-              context,
-            ).textTheme.headlineLarge?.copyWith(fontSize: 44, height: 1.05),
-          ),
-          const SizedBox(height: 18),
-          Text(
-            description,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.copyWith(color: AppTheme.textSecondary),
-          ),
-          const SizedBox(height: 28),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: const [
-              _BrandBadge(icon: Icons.restaurant_menu_rounded, label: 'Sabor'),
-              _BrandBadge(
-                icon: Icons.room_service_outlined,
-                label: 'Atendimento',
-              ),
-              _BrandBadge(
-                icon: Icons.thumb_up_alt_outlined,
-                label: 'Recomendacao',
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BrandBadge extends StatelessWidget {
-  const _BrandBadge({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppTheme.inputBorder, width: 1.0),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18, color: AppTheme.primaryBrand),
-          const SizedBox(width: 8),
-          Text(label, style: Theme.of(context).textTheme.bodyMedium),
-        ],
       ),
     );
   }

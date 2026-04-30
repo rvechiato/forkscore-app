@@ -24,23 +24,27 @@ class AuthShellPage extends StatelessWidget {
       body: LayoutBuilder(
         builder: (context, constraints) {
           final useWebLayout = constraints.maxWidth >= 900;
+          final isLogin = currentScreen == AuthFlowScreen.login;
 
           return ColoredBox(
             color: useWebLayout
                 ? AppTheme.previewBackdrop
                 : AppTheme.background,
             child: Center(
-              child: AuthDeviceFrame(
-                useWebLayout: useWebLayout,
-                currentScreen: currentScreen,
-                onSelectScreen: (screen) => _navigateToScreen(context, screen),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 280),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  child: child,
-                ),
-              ),
+              child: isLogin
+                  ? child
+                  : AuthDeviceFrame(
+                      useWebLayout: useWebLayout,
+                      currentScreen: currentScreen,
+                      onSelectScreen: (screen) =>
+                          _navigateToScreen(context, screen),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 280),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeInCubic,
+                        child: child,
+                      ),
+                    ),
             ),
           );
         },
