@@ -16,6 +16,7 @@ class PlacesDiscoverySection extends StatefulWidget {
     this.repository,
     this.reviewsRepository,
     this.accessTokenProvider,
+    this.onPlaceSelected,
     this.onReviewPlaceSelected,
     required this.currentUserName,
     this.eyebrow = 'Fluxo de avaliacao',
@@ -26,8 +27,10 @@ class PlacesDiscoverySection extends StatefulWidget {
     this.titleFontSize = 42,
     this.contentPadding = EdgeInsets.zero,
     this.showHeroDivider = true,
+    this.showInlineDetail = true,
   }) : assert(
-         reviewsRepository != null && accessTokenProvider != null,
+         !showInlineDetail ||
+             (reviewsRepository != null && accessTokenProvider != null),
          'Provide reviewsRepository and accessTokenProvider.',
        ),
        assert(
@@ -39,6 +42,7 @@ class PlacesDiscoverySection extends StatefulWidget {
   final PlacesRepository? repository;
   final ReviewsRepository? reviewsRepository;
   final String? Function()? accessTokenProvider;
+  final ValueChanged<PlaceSummary>? onPlaceSelected;
   final ValueChanged<PlaceDetail>? onReviewPlaceSelected;
   final String currentUserName;
   final String eyebrow;
@@ -47,6 +51,7 @@ class PlacesDiscoverySection extends StatefulWidget {
   final double titleFontSize;
   final EdgeInsetsGeometry contentPadding;
   final bool showHeroDivider;
+  final bool showInlineDetail;
 
   @override
   State<PlacesDiscoverySection> createState() => _PlacesDiscoverySectionState();
@@ -125,7 +130,13 @@ class _PlacesDiscoverySectionState extends State<PlacesDiscoverySection> {
                     controller: _controller,
                     places: visiblePlaces,
                     query: _query,
+                    showSelection: widget.showInlineDetail,
+                    onPlaceSelected: widget.onPlaceSelected,
                   );
+                  if (!widget.showInlineDetail) {
+                    return results;
+                  }
+
                   final detail = _PlacesDetailCard(
                     place: _controller.selectedPlace,
                     loading: _controller.isLoadingDetail,
@@ -178,6 +189,7 @@ class _PlacesDiscoverySectionState extends State<PlacesDiscoverySection> {
       _controller = PlacesController(
         repository: repository!,
         accessTokenProvider: accessTokenProvider!,
+        selectFirstPlace: widget.showInlineDetail,
       );
       _ownsController = true;
     }
@@ -376,11 +388,15 @@ class _PlacesResultsCard extends StatelessWidget {
     required this.controller,
     required this.places,
     required this.query,
+    required this.showSelection,
+    required this.onPlaceSelected,
   });
 
   final PlacesController controller;
   final List<PlaceSummary> places;
   final String query;
+  final bool showSelection;
+  final ValueChanged<PlaceSummary>? onPlaceSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -445,12 +461,20 @@ class _PlacesResultsCard extends StatelessWidget {
                 separatorBuilder: (context, index) => const SizedBox(height: 4),
                 itemBuilder: (context, index) {
                   final place = places[index];
-                  final isSelected = controller.selectedPlace?.id == place.id;
+                  final isSelected =
+                      showSelection && controller.selectedPlace?.id == place.id;
 
                   return _PlaceSummaryTile(
                     place: place,
                     selected: isSelected,
-                    onTap: () => controller.selectPlace(place.id),
+                    onTap: () {
+                      final callback = onPlaceSelected;
+                      if (callback != null) {
+                        callback(place);
+                        return;
+                      }
+                      controller.selectPlace(place.id);
+                    },
                   );
                 },
               ),

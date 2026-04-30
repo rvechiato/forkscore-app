@@ -229,6 +229,34 @@ def test_get_place_reviews_summary_returns_404_for_unknown_place(client) -> None
     assert response.json()["detail"] == "Place not found."
 
 
+def test_list_place_reviews_returns_empty_list(client) -> None:
+    token, _ = _register_and_get_token(client)
+    place = _create_place(client, token)
+
+    response = client.get(
+        f"/places/{place['id']}/reviews",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "place_id": place["id"],
+        "reviews": [],
+    }
+
+
+def test_list_place_reviews_returns_404_for_unknown_place(client) -> None:
+    token, _ = _register_and_get_token(client)
+
+    response = client.get(
+        "/places/00000000-0000-0000-0000-000000000000/reviews",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Place not found."
+
+
 def test_get_place_reviews_summary_returns_average_and_recent_reviews(client, db_session) -> None:
     owner_token, _ = _register_and_get_token(client)
     reviewer_two_token, _ = _register_and_get_token(
@@ -314,3 +342,50 @@ def test_get_place_reviews_summary_returns_average_and_recent_reviews(client, db
         "options",
         "infrastructure",
     ]
+
+
+def test_list_place_reviews_returns_all_reviews_newest_first(client, db_session) -> None:
+    owner_token, _ = _register_and_get_token(client)
+    reviewer_two_token, _ = _register_and_get_token(
+        client,
+        name="Joana Silva",
+        email="joana-list@example.com",
+    )
+    reviewer_three_token, _ = _register_and_get_token(
+        client,
+        name="Carlos Souza",
+        email="carlos-list@example.com",
+    )
+    reviewer_four_token, _ = _register_and_get_token(
+        client,
+        name="Marina Lima",
+        email="marina-list@example.com",
+    )
+    place = _create_place(client, owner_token)
+
+    review_one = _create_review(client, owner_token, place["id"])
+    review_two = _create_review(client, reviewer_two_token, place["id"])
+    review_three = _create_review(client, reviewer_three_token, place["id"])
+    review_four = _create_review(client, reviewer_four_token, place["id"])
+
+    _set_review_created_at(db_session, review_one["id"], datetime(2026, 4, 28, 12, 0, tzinfo=UTC))
+    _set_review_created_at(db_session, review_two["id"], datetime(2026, 4, 28, 13, 0, tzinfo=UTC))
+    _set_review_created_at(db_session, review_three["id"], datetime(2026, 4, 28, 14, 0, tzinfo=UTC))
+    _set_review_created_at(db_session, review_four["id"], datetime(2026, 4, 28, 15, 0, tzinfo=UTC))
+
+    response = client.get(
+        f"/places/{place['id']}/reviews",
+        headers={"Authorization": f"Bearer {owner_token}"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["place_id"] == place["id"]
+    assert [item["id"] for item in body["reviews"]] == [
+        review_four["id"],
+        review_three["id"],
+        review_two["id"],
+        review_one["id"],
+    ]
+    assert body["reviews"][0]["user"]["name"] == "Marina Lima"
+    assert body["reviews"][0]["overall_rating"] == 3.6

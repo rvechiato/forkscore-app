@@ -8,9 +8,12 @@ import 'package:forkscore_frontend/features/places/data/mock_places_repository.d
 import 'package:forkscore_frontend/features/reviews/data/mock_reviews_repository.dart';
 
 void main() {
-  testWidgets('detalhe lateral mostra reviews sem esconder o CTA', (
+  testWidgets('pagina dedicada mostra reviews sem esconder o CTA', (
     WidgetTester tester,
   ) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     await tester.pumpWidget(
       ForkScoreApp(
         initialRoute: AppRoutes.home,
@@ -32,19 +35,36 @@ void main() {
     await tester.tap(find.text('Entrar'));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(
+      find.byKey(const Key('place-search-result-place-1')),
+    );
+    await tester.tap(find.byKey(const Key('place-search-result-place-1')));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('place-reviews-page')), findsOneWidget);
     expect(
       find.byKey(const Key('place-review-summary-content')),
       findsOneWidget,
     );
     expect(find.byKey(const Key('start-review-button')), findsOneWidget);
     expect(find.text('2 reviews registradas'), findsOneWidget);
+    expect(
+      find.byKey(const Key('place-review-full-item-rev_1')),
+      findsOneWidget,
+    );
 
-    await tester.ensureVisible(find.byKey(const Key('place-search-result-place-2')));
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.byKey(const Key('place-search-result-place-2')),
+    );
     await tester.tap(find.byKey(const Key('place-search-result-place-2')));
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('place-review-summary-empty')), findsOneWidget);
+    expect(find.byKey(const Key('place-reviews-list-empty')), findsOneWidget);
     expect(find.byKey(const Key('start-review-button')), findsOneWidget);
   });
 }
