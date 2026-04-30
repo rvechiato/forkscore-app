@@ -4,6 +4,7 @@ import '../../../../app/auth_scope.dart';
 import '../../../../app/navigation/app_routes.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/widgets/action_buttons.dart';
+import '../../../../shared/widgets/authenticated_page_scaffold.dart';
 import '../../../../shared/widgets/forkscore_text_field.dart';
 import '../../domain/models/auth_user.dart';
 
@@ -72,69 +73,41 @@ class _ProfilePageState extends State<ProfilePage> {
       _syncControllersFromUser(currentUser);
     }
 
-    return Scaffold(
+    return AuthenticatedPageScaffold(
       key: const Key('profile-page'),
-      backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
-        title: const Text('Perfil'),
-        actions: [
-          TextButton(
-            onPressed: sessionController.isBusy ? null : _refreshProfile,
-            child: const Text('Atualizar'),
-          ),
-          TextButton(
-            onPressed: () {
-              sessionController.logout();
-              Navigator.of(
+      maxWidth: 960,
+      showBackButton: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () => Navigator.of(
                 context,
-              ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
-            },
-            child: const Text('Sair'),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 960),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil(
-                      AppRoutes.home,
-                      (route) => false,
-                    ),
-                    icon: const Icon(Icons.arrow_back_rounded),
-                    label: const Text('Voltar para a home'),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                if (_inlineMessage != null) ...[
-                  _InlineFeedbackCard(
-                    message: _inlineMessage!,
-                    isError: _showErrorStyle,
-                  ),
-                  const SizedBox(height: 16),
-                ],
-                _ProfileFormCard(
-                  nameController: _nameController,
-                  emailController: _emailController,
-                  birthDateController: _birthDateController,
-                  isBusy: sessionController.isBusy,
-                  onChanged: _handleFieldChange,
-                  onSave: _saveProfile,
-                  onRefresh: _refreshProfile,
-                ),
-              ],
+              ).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false),
+              icon: const Icon(Icons.arrow_back_rounded),
+              label: const Text('Voltar para a home'),
             ),
           ),
-        ),
+          const SizedBox(height: 8),
+          if (_inlineMessage != null) ...[
+            _InlineFeedbackCard(
+              message: _inlineMessage!,
+              isError: _showErrorStyle,
+            ),
+            const SizedBox(height: 16),
+          ],
+          _ProfileFormCard(
+            nameController: _nameController,
+            emailController: _emailController,
+            birthDateController: _birthDateController,
+            isBusy: sessionController.isBusy,
+            onChanged: _handleFieldChange,
+            onSave: _saveProfile,
+            onRefresh: _refreshProfile,
+          ),
+        ],
       ),
     );
   }
@@ -155,7 +128,8 @@ class _ProfilePageState extends State<ProfilePage> {
     if (sessionController.errorMessage != null) {
       setState(() {
         _inlineMessage =
-            sessionController.errorMessage ?? 'Nao foi possivel atualizar o perfil.';
+            sessionController.errorMessage ??
+            'Nao foi possivel atualizar o perfil.';
         _showErrorStyle = true;
       });
       return;
@@ -207,7 +181,8 @@ class _ProfilePageState extends State<ProfilePage> {
     if (sessionController.errorMessage != null) {
       setState(() {
         _inlineMessage =
-            sessionController.errorMessage ?? 'Nao foi possivel salvar o perfil.';
+            sessionController.errorMessage ??
+            'Nao foi possivel salvar o perfil.';
         _showErrorStyle = true;
       });
       return;
@@ -308,7 +283,10 @@ class _ProfileFormCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Dados do perfil', style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            'Dados do perfil',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           const SizedBox(height: 6),
           Text(
             'Atualize seus dados basicos quando precisar.',
@@ -440,9 +418,9 @@ class _InlineFeedbackCard extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppTheme.textPrimary,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppTheme.textPrimary),
             ),
           ),
         ],

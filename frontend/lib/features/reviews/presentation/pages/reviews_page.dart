@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/auth_scope.dart';
 import '../../../../shared/theme/app_theme.dart';
+import '../../../../shared/widgets/authenticated_page_scaffold.dart';
 import '../../../places/domain/models/place_detail.dart';
 import '../../../places/domain/places_repository.dart';
 import '../../../places/presentation/widgets/place_discovery_section.dart';
@@ -55,40 +56,24 @@ class _ReviewsPageState extends State<ReviewsPage> {
     final sessionController = SessionScope.of(context);
     final userName = sessionController.currentUser?.name ?? 'Gastronomo';
 
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
-        title: Text(
-          _selectedPlace == null ? 'Escolha o local' : 'Nova avaliacao',
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1180),
-            child: _selectedPlace == null
-                ? PlacesDiscoverySection(
-                    repository: widget.placesRepository,
-                    reviewsRepository: widget.reviewsRepository,
-                    accessTokenProvider: () =>
-                        sessionController.session?.accessToken,
-                    currentUserName: userName,
-                    title: 'Escolha o lugar da avaliacao',
-                    titleFontSize: 32,
-                    onReviewPlaceSelected: _openReviewForPlace,
-                  )
-                : _ReviewComposer(
-                    controller: _controller,
-                    place: _selectedPlace!,
-                    onBackToChooser: _backToChooser,
-                    onReturnToPlace: _returnToPlace,
-                  ),
-          ),
-        ),
-      ),
+    return AuthenticatedPageScaffold(
+      showBackButton: true,
+      child: _selectedPlace == null
+          ? PlacesDiscoverySection(
+              repository: widget.placesRepository,
+              reviewsRepository: widget.reviewsRepository,
+              accessTokenProvider: () => sessionController.session?.accessToken,
+              currentUserName: userName,
+              title: 'Escolha o lugar da avaliacao',
+              titleFontSize: 32,
+              onReviewPlaceSelected: _openReviewForPlace,
+            )
+          : _ReviewComposer(
+              controller: _controller,
+              place: _selectedPlace!,
+              onBackToChooser: _backToChooser,
+              onReturnToPlace: _returnToPlace,
+            ),
     );
   }
 

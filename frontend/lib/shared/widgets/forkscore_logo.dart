@@ -12,12 +12,14 @@ class ForkScoreLogo extends StatelessWidget {
     this.showWordmark = true,
     this.markWidth,
     this.wordmarkSize,
+    this.subtitle,
   });
 
   final bool compact;
   final bool showWordmark;
   final double? markWidth;
   final double? wordmarkSize;
+  final String? subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -34,14 +36,33 @@ class ForkScoreLogo extends StatelessWidget {
           ),
           if (showWordmark) ...[
             SizedBox(width: compact ? 12 : 20),
-            Text(
-              'ForkScore',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: wordmarkSize ?? (compact ? 22 : 28),
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.6,
-                color: AppTheme.textPrimary,
-              ),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'ForkScore',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: wordmarkSize ?? (compact ? 22 : 28),
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.6,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                if (subtitle case final subtitleText?) ...[
+                  const SizedBox(height: 1),
+                  Text(
+                    subtitleText,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: compact ? 8 : 10,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ],
         ],

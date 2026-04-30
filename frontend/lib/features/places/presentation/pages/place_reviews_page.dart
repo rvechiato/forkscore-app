@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/auth_scope.dart';
 import '../../../../app/navigation/app_routes.dart';
 import '../../../../shared/theme/app_theme.dart';
+import '../../../../shared/widgets/authenticated_page_scaffold.dart';
 import '../../../reviews/domain/models/recent_place_review.dart';
 import '../../../reviews/domain/models/recent_review_comment.dart';
 import '../../../reviews/domain/reviews_repository.dart';
@@ -60,22 +61,10 @@ class _PlaceReviewsPageState extends State<PlaceReviewsPage> {
     final sessionController = SessionScope.of(context);
     final accessToken = sessionController.session?.accessToken;
 
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
-        title: const Text('Lugar e reviews'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1040),
-            child: _buildBody(context, accessToken),
-          ),
-        ),
-      ),
+    return AuthenticatedPageScaffold(
+      maxWidth: 1040,
+      showBackButton: true,
+      child: _buildBody(context, accessToken),
     );
   }
 
