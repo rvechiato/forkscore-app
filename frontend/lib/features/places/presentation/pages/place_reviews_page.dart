@@ -354,7 +354,7 @@ class _PlaceReviewsListSectionState extends State<_PlaceReviewsListSection> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Reviews do MVP',
+                      'Reviews',
                       style: theme.textTheme.titleLarge,
                     ),
                   ),
