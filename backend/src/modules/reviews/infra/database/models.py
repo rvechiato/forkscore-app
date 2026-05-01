@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String
+from sqlalchemy import DateTime, Float, ForeignKey, Index, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.shared.infra.database.base import Base
@@ -47,6 +47,7 @@ class ReviewModel(Base):
     """SQLAlchemy model for reviews."""
 
     __tablename__ = "reviews"
+    __table_args__ = (Index("ix_reviews_place_id", "place_id"),)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     place_id: Mapped[str] = mapped_column(
@@ -61,6 +62,7 @@ class ReviewModel(Base):
     )
     recommendation: Mapped[str] = mapped_column(String(32), nullable=False)
     cost_benefit_rating: Mapped[int] = mapped_column(Integer, nullable=False)
+    overall_rating: Mapped[float] = mapped_column(Float, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     criteria: Mapped[list[ReviewCriterionModel]] = relationship(

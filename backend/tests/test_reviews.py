@@ -107,7 +107,7 @@ def _set_review_created_at(db_session, review_id: str, created_at: datetime) -> 
     db_session.commit()
 
 
-def test_create_review_returns_created_review(client) -> None:
+def test_create_review_returns_created_review(client, db_session) -> None:
     token, user = _register_and_get_token(client)
     place = _create_place(client, token)
 
@@ -123,6 +123,9 @@ def test_create_review_returns_created_review(client) -> None:
         "options",
         "infrastructure",
     ]
+    persisted = db_session.get(ReviewModel, body["id"])
+    assert persisted is not None
+    assert persisted.overall_rating == 3.6
 
 
 def test_create_review_requires_authentication(client) -> None:

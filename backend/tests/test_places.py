@@ -32,6 +32,49 @@ def _register_and_get_token(
     return body["access_token"], body["user"]
 
 
+def _valid_review_payload() -> dict:
+    return {
+        "recommendation": "recommended",
+        "cost_benefit_rating": 4,
+        "criteria": [
+            {
+                "code": "taste",
+                "rating": 5,
+                "comment": "Pratos bem executados e sabor equilibrado.",
+                "justification": None,
+            },
+            {
+                "code": "service",
+                "rating": 4,
+                "comment": "Equipe atenciosa e agilidade adequada.",
+                "justification": None,
+            },
+            {
+                "code": "options",
+                "rating": 2,
+                "comment": "Poucas opcoes vegetarianas no cardapio.",
+                "justification": "O cardapio tem variedade limitada.",
+            },
+            {
+                "code": "infrastructure",
+                "rating": 3,
+                "comment": "Ambiente confortavel e limpo.",
+                "justification": None,
+            },
+        ],
+    }
+
+
+def _create_review(client, token: str, place_id: str, payload: dict | None = None) -> dict:
+    response = client.post(
+        f"/places/{place_id}/reviews",
+        headers={"Authorization": f"Bearer {token}"},
+        json=_valid_review_payload() if payload is None else payload,
+    )
+    assert response.status_code == 201
+    return response.json()
+
+
 def test_create_place_registers_authenticated_author(client) -> None:
     token, user = _register_and_get_token(client)
 
@@ -133,7 +176,7 @@ def test_list_places_returns_registered_places(client) -> None:
         email="pat@example.com",
     )
 
-    client.post(
+    cafe_response = client.post(
         "/places",
         headers={"Authorization": f"Bearer {first_token}"},
         json={
@@ -146,7 +189,7 @@ def test_list_places_returns_registered_places(client) -> None:
             "subcategory_id": _subcategory_id("Cafeteria", "Cafeteria"),
         },
     )
-    client.post(
+    padaria_response = client.post(
         "/places",
         headers={"Authorization": f"Bearer {second_token}"},
         json={
@@ -159,6 +202,16 @@ def test_list_places_returns_registered_places(client) -> None:
             "subcategory_id": _subcategory_id("Lanchonete", "Fast Food"),
         },
     )
+    cafe_id = cafe_response.json()["id"]
+    padaria_id = padaria_response.json()["id"]
+
+    _create_review(client, first_token, padaria_id)
+    second_review = _valid_review_payload()
+    second_review["cost_benefit_rating"] = 5
+    for criterion in second_review["criteria"]:
+        criterion["rating"] = 5
+        criterion["justification"] = None
+    _create_review(client, second_token, padaria_id, second_review)
 
     response = client.get(
         "/places",
@@ -172,8 +225,24 @@ def test_list_places_returns_registered_places(client) -> None:
     assert body[0]["category"]["name"] == "Lanchonete"
     assert body[0]["created_by"]["id"] == second_user["id"]
     assert body[0]["created_by"]["name"] == "Pat Martins"
+    assert body[0]["review_summary"] == {
+        "total_reviews": 2,
+        "average_rating": 4.3,
+    }
     assert body[1]["name"] == "Cafe do Centro"
+    assert body[1]["id"] == cafe_id
     assert body[1]["created_by"]["id"] == first_user["id"]
+    assert body[1]["review_summary"] == {
+        "total_reviews": 0,
+        "average_rating": None,
+    }
+
+
+def test_list_places_requires_authentication(client) -> None:
+    response = client.get("/places")
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Not authenticated."
 
 
 def test_get_place_by_id_returns_place_detail(client) -> None:

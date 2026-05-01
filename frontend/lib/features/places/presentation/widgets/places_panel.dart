@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/models/place_detail.dart';
+import '../../domain/models/place_summary.dart';
 import '../controllers/places_controller.dart';
 
 class PlacesPanel extends StatefulWidget {
@@ -324,7 +325,8 @@ class _PlacesPanelState extends State<PlacesPanel> {
                           subtitle:
                               '${place.neighborhood}, ${place.city} • '
                               '${place.category.name} / ${place.subcategory.name}',
-                          authorName: place.createdBy.name,
+                          scoreLabel: _scoreLabel(place),
+                          reviewsLabel: _reviewsLabel(place),
                           selected:
                               widget.controller.selectedPlace?.id == place.id,
                           onTap: () => widget.controller.selectPlace(place.id),
@@ -420,6 +422,19 @@ class _PlacesPanelState extends State<PlacesPanel> {
     return null;
   }
 
+  String _scoreLabel(PlaceSummary place) {
+    final averageRating = place.reviewSummary.averageRating;
+    if (averageRating == null) {
+      return '-';
+    }
+    return averageRating.toStringAsFixed(1);
+  }
+
+  String _reviewsLabel(PlaceSummary place) {
+    final totalReviews = place.reviewSummary.totalReviews;
+    return totalReviews == 1 ? '1 review' : '$totalReviews reviews';
+  }
+
   BoxDecoration get _cardDecoration => BoxDecoration(
     color: Colors.white.withValues(alpha: 0.97),
     borderRadius: BorderRadius.circular(32),
@@ -439,7 +454,8 @@ class _PlaceSummaryTile extends StatelessWidget {
     required this.placeId,
     required this.title,
     required this.subtitle,
-    required this.authorName,
+    required this.scoreLabel,
+    required this.reviewsLabel,
     required this.selected,
     required this.onTap,
   });
@@ -447,7 +463,8 @@ class _PlaceSummaryTile extends StatelessWidget {
   final String placeId;
   final String title;
   final String subtitle;
-  final String? authorName;
+  final String scoreLabel;
+  final String reviewsLabel;
   final bool selected;
   final VoidCallback onTap;
 
@@ -485,22 +502,54 @@ class _PlaceSummaryTile extends StatelessWidget {
               ).textTheme.bodyMedium?.copyWith(color: const Color(0xFF6A5442)),
             ),
             const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                authorName == null ? 'Autor desconhecido' : 'Por $authorName',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: const Color(0xFF7B4B2D),
-                  fontWeight: FontWeight.w700,
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _PlaceSummaryMetric(
+                  icon: Icons.star_rounded,
+                  label: scoreLabel,
                 ),
-              ),
+                _PlaceSummaryMetric(
+                  icon: Icons.rate_review_outlined,
+                  label: reviewsLabel,
+                ),
+              ],
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _PlaceSummaryMetric extends StatelessWidget {
+  const _PlaceSummaryMetric({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: const Color(0xFF7B4B2D)),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: const Color(0xFF7B4B2D),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }

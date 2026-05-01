@@ -25,6 +25,10 @@ from src.modules.places.infra.repositories.sqlalchemy_place_repository import (
 from src.modules.places.infra.repositories.sqlalchemy_subcategory_repository import (
     SqlAlchemySubcategoryRepository,
 )
+from src.modules.reviews.domain.ports.review_repository import ReviewRepository
+from src.modules.reviews.infra.repositories.sqlalchemy_review_repository import (
+    SqlAlchemyReviewRepository,
+)
 from src.modules.users.domain.ports.profile_repository import ProfileRepository
 from src.shared.infra.database.session import get_db_session
 
@@ -53,6 +57,14 @@ def get_subcategory_repository(
     return SqlAlchemySubcategoryRepository(session=session)
 
 
+def get_review_repository(
+    session: Session = Depends(get_db_session),
+) -> ReviewRepository:
+    """Provide a review repository for place listing aggregation."""
+
+    return SqlAlchemyReviewRepository(session=session)
+
+
 def get_create_place_use_case(
     place_repository: PlaceRepository = Depends(get_place_repository),
     category_repository: CategoryRepository = Depends(get_category_repository),
@@ -78,6 +90,7 @@ def get_list_places_use_case(
         get_subcategory_repository,
     ),
     profile_repository: ProfileRepository = Depends(get_profile_repository),
+    review_repository: ReviewRepository = Depends(get_review_repository),
 ) -> ListPlaces:
     """Provide the list places use case."""
 
@@ -86,6 +99,7 @@ def get_list_places_use_case(
         category_repository=category_repository,
         subcategory_repository=subcategory_repository,
         profile_repository=profile_repository,
+        review_repository=review_repository,
     )
 
 

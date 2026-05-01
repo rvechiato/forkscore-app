@@ -2,6 +2,7 @@ import 'forkscore_api_places_repository.dart';
 import '../domain/models/place_author.dart';
 import '../domain/models/place_category.dart';
 import '../domain/models/place_detail.dart';
+import '../domain/models/place_review_summary_brief.dart';
 import '../domain/models/place_summary.dart';
 import '../domain/models/place_subcategory.dart';
 import '../domain/places_repository.dart';
@@ -111,6 +112,7 @@ class MockPlacesRepository implements PlacesRepository {
             category: place.category,
             subcategory: place.subcategory,
             createdBy: place.createdBy,
+            reviewSummary: _reviewSummaryByPlaceId(place.id),
           ),
         )
         .toList(growable: false);
@@ -301,6 +303,16 @@ class MockPlacesRepository implements PlacesRepository {
 
   PlaceSubcategory _subcategoryById(String id) {
     return _subcategories.firstWhere((item) => item.id == id);
+  }
+
+  PlaceReviewSummaryBrief _reviewSummaryByPlaceId(String id) {
+    return switch (id) {
+      'place-1' => const PlaceReviewSummaryBrief(
+        totalReviews: 2,
+        averageRating: 4.3,
+      ),
+      _ => const PlaceReviewSummaryBrief(totalReviews: 0, averageRating: null),
+    };
   }
 
   Future<void> _simulateLatency() {

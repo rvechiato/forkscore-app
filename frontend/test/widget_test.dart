@@ -265,6 +265,24 @@ void main() {
     expect(find.byKey(const ValueKey('home-page')), findsOneWidget);
     expect(find.byKey(const Key('place-review-summary-content')), findsNothing);
 
+    final firstPlaceTile = find.byKey(const Key('place-search-result-place-1'));
+    expect(
+      find.descendant(of: firstPlaceTile, matching: find.text('Cafeteria')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: firstPlaceTile, matching: find.text('4.3')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: firstPlaceTile, matching: find.text('2 reviews')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: firstPlaceTile, matching: find.text('Gastronomo')),
+      findsNothing,
+    );
+
     await tester.ensureVisible(
       find.byKey(const Key('place-search-result-place-1')),
     );
@@ -315,6 +333,23 @@ void main() {
       await tester.ensureVisible(
         find.byKey(const Key('place-search-result-place-2')),
       );
+
+      final emptyPlaceTile = find.byKey(
+        const Key('place-search-result-place-2'),
+      );
+      expect(
+        find.descendant(of: emptyPlaceTile, matching: find.text('-')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: emptyPlaceTile, matching: find.text('0 reviews')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: emptyPlaceTile, matching: find.text('Gastronomo')),
+        findsNothing,
+      );
+
       await tester.tap(find.byKey(const Key('place-search-result-place-2')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));

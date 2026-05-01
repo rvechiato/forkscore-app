@@ -1,6 +1,7 @@
 from src.modules.places.application.dtos import (
     PlaceAuthorOutput,
     PlaceCategoryOutput,
+    PlaceReviewSummaryBriefOutput,
     PlaceSubcategoryOutput,
     PlaceSummaryOutput,
 )
@@ -9,6 +10,7 @@ from src.modules.places.domain.ports.place_repository import PlaceRepository
 from src.modules.places.domain.ports.subcategory_repository import (
     SubcategoryRepository,
 )
+from src.modules.reviews.domain.ports.review_repository import ReviewRepository
 from src.modules.users.domain.ports.profile_repository import ProfileRepository
 
 
@@ -21,14 +23,19 @@ class ListPlaces:
         category_repository: CategoryRepository,
         subcategory_repository: SubcategoryRepository,
         profile_repository: ProfileRepository,
+        review_repository: ReviewRepository,
     ) -> None:
         self._place_repository = place_repository
         self._category_repository = category_repository
         self._subcategory_repository = subcategory_repository
         self._profile_repository = profile_repository
+        self._review_repository = review_repository
 
     def execute(self) -> list[PlaceSummaryOutput]:
         places = self._place_repository.list_all()
+        review_summaries = self._review_repository.summaries_by_place_ids(
+            [str(place.id) for place in places],
+        )
         results: list[PlaceSummaryOutput] = []
 
         for place in places:
@@ -37,6 +44,7 @@ class ListPlaces:
             subcategory = self._subcategory_repository.find_active_by_id(
                 str(place.subcategory_id),
             )
+            review_summary = review_summaries.get(str(place.id))
             results.append(
                 PlaceSummaryOutput(
                     id=str(place.id),
@@ -59,6 +67,14 @@ class ListPlaces:
                     created_by=PlaceAuthorOutput(
                         id=place.created_by_user_id,
                         name=None if profile is None else profile.name,
+                    ),
+                    review_summary=PlaceReviewSummaryBriefOutput(
+                        total_reviews=0
+                        if review_summary is None
+                        else review_summary.total_reviews,
+                        average_rating=None
+                        if review_summary is None
+                        else review_summary.average_rating,
                     ),
                 )
             )

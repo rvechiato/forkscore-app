@@ -4,6 +4,7 @@ import '../../../shared/http/simple_http_client.dart';
 import '../domain/models/place_author.dart';
 import '../domain/models/place_category.dart';
 import '../domain/models/place_detail.dart';
+import '../domain/models/place_review_summary_brief.dart';
 import '../domain/models/place_summary.dart';
 import '../domain/models/place_subcategory.dart';
 import '../domain/places_repository.dart';
@@ -143,6 +144,9 @@ class ForkScoreApiPlacesRepository implements PlacesRepository {
         payload['subcategory'] as Map<String, dynamic>,
       ),
       createdBy: _parseAuthor(payload['created_by'] as Map<String, dynamic>),
+      reviewSummary: _parseReviewSummary(
+        payload['review_summary'] as Map<String, dynamic>,
+      ),
     );
   }
 
@@ -183,6 +187,16 @@ class ForkScoreApiPlacesRepository implements PlacesRepository {
     return PlaceAuthor(
       id: payload['id'] as String,
       name: payload['name'] as String?,
+    );
+  }
+
+  PlaceReviewSummaryBrief _parseReviewSummary(Map<String, dynamic> payload) {
+    final averageRating = payload['average_rating'];
+    return PlaceReviewSummaryBrief(
+      totalReviews: payload['total_reviews'] as int,
+      averageRating: averageRating == null
+          ? null
+          : (averageRating as num).toDouble(),
     );
   }
 

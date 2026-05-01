@@ -55,6 +55,13 @@ class PlaceAuthorOutput(BaseModel):
     name: str | None = None
 
 
+class PlaceReviewSummaryBriefOutput(BaseModel):
+    """Compact review summary for place list rows."""
+
+    total_reviews: int
+    average_rating: float | None = None
+
+
 class PlaceSummaryOutput(BaseModel):
     """List payload for a registered place."""
 
@@ -67,6 +74,7 @@ class PlaceSummaryOutput(BaseModel):
     category: PlaceCategoryOutput
     subcategory: PlaceSubcategoryOutput
     created_by: PlaceAuthorOutput
+    review_summary: PlaceReviewSummaryBriefOutput
 
 
 class PlaceDetailOutput(BaseModel):

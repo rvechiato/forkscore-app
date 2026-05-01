@@ -1,5 +1,6 @@
 import 'place_author.dart';
 import 'place_category.dart';
+import 'place_review_summary_brief.dart';
 import 'place_subcategory.dart';
 
 class PlaceSummary {
@@ -11,6 +12,7 @@ class PlaceSummary {
     required this.category,
     required this.subcategory,
     required this.createdBy,
+    required this.reviewSummary,
   });
 
   final String id;
@@ -20,4 +22,5 @@ class PlaceSummary {
   final PlaceCategory category;
   final PlaceSubcategory subcategory;
   final PlaceAuthor createdBy;
+  final PlaceReviewSummaryBrief reviewSummary;
 }

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../data/forkscore_api_places_repository.dart';
 import '../../domain/models/place_category.dart';
 import '../../domain/models/place_detail.dart';
+import '../../domain/models/place_review_summary_brief.dart';
 import '../../domain/models/place_summary.dart';
 import '../../domain/models/place_subcategory.dart';
 import '../../domain/places_repository.dart';
@@ -126,6 +127,10 @@ class PlacesController extends ChangeNotifier {
           category: detail.category,
           subcategory: detail.subcategory,
           createdBy: detail.createdBy,
+          reviewSummary: const PlaceReviewSummaryBrief(
+            totalReviews: 0,
+            averageRating: null,
+          ),
         ),
         ..._places.where((place) => place.id != detail.id),
       ];
