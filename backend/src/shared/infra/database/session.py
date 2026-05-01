@@ -79,6 +79,10 @@ def _run_sqlite_bootstrap_migrations(engine: Engine, database_url: str) -> None:
         return
 
     inspector = inspect(engine)
+    table_names = inspector.get_table_names()
+    if "reviews" in table_names:
+        _ensure_reviews_overall_rating(engine, inspector)
+
     if "profiles" not in inspector.get_table_names():
         return
 
@@ -117,3 +121,29 @@ def _run_sqlite_bootstrap_migrations(engine: Engine, database_url: str) -> None:
         connection.execute(text("DROP TABLE profiles"))
         connection.execute(text("ALTER TABLE profiles__new RENAME TO profiles"))
         connection.execute(text("PRAGMA foreign_keys=ON"))
+
+
+def _ensure_reviews_overall_rating(engine: Engine, inspector) -> None:
+    """Add and backfill persisted overall ratings for existing SQLite reviews."""
+
+    columns = {column["name"] for column in inspector.get_columns("reviews")}
+    with engine.begin() as connection:
+        if "overall_rating" not in columns:
+            connection.execute(text("ALTER TABLE reviews ADD COLUMN overall_rating FLOAT"))
+            connection.execute(
+                text(
+                    """
+                    UPDATE reviews
+                    SET overall_rating = (
+                        cost_benefit_rating + (
+                            SELECT COALESCE(SUM(rating), 0)
+                            FROM review_criteria
+                            WHERE review_criteria.review_id = reviews.id
+                        )
+                    ) / 5.0
+                    """
+                )
+            )
+        connection.execute(
+            text("CREATE INDEX IF NOT EXISTS ix_reviews_place_id ON reviews (place_id)")
+        )

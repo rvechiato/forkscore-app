@@ -207,14 +207,12 @@ class _PlacesDiscoverySectionState extends State<PlacesDiscoverySection> {
     final normalizedQuery = query.toLowerCase();
     return places
         .where((place) {
-          final authorName = place.createdBy.name ?? '';
           final haystack = <String>[
             place.name,
             place.neighborhood,
             place.city,
             place.category.name,
             place.subcategory.name,
-            authorName,
           ].join(' ').toLowerCase();
           return haystack.contains(normalizedQuery);
         })
@@ -503,6 +501,19 @@ class _PlaceSummaryTile extends StatefulWidget {
 class _PlaceSummaryTileState extends State<_PlaceSummaryTile> {
   bool _hovered = false;
 
+  String _scoreLabel(PlaceSummary place) {
+    final averageRating = place.reviewSummary.averageRating;
+    if (averageRating == null) {
+      return '-';
+    }
+    return averageRating.toStringAsFixed(1);
+  }
+
+  String _reviewsLabel(PlaceSummary place) {
+    final totalReviews = place.reviewSummary.totalReviews;
+    return totalReviews == 1 ? '1 review' : '$totalReviews reviews';
+  }
+
   IconData _categoryIcon(String slug) {
     switch (slug) {
       case 'restaurantes':
@@ -602,22 +613,34 @@ class _PlaceSummaryTileState extends State<_PlaceSummaryTile> {
                 ),
               ),
               const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  _TagChip(
-                    label: place.category.name,
-                    color: AppTheme.primaryBrand,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    place.createdBy.name ?? 'Autor desconhecido',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppTheme.textSecondary,
-                      fontSize: 11,
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _TagChip(
+                      label: place.category.name,
+                      color: AppTheme.primaryBrand,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      alignment: WrapAlignment.end,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        _ReviewMetric(
+                          icon: Icons.star_rounded,
+                          label: _scoreLabel(place),
+                        ),
+                        _ReviewMetric(
+                          icon: Icons.rate_review_outlined,
+                          label: _reviewsLabel(place),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(width: 8),
               Icon(
@@ -631,6 +654,32 @@ class _PlaceSummaryTileState extends State<_PlaceSummaryTile> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ReviewMetric extends StatelessWidget {
+  const _ReviewMetric({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 15, color: AppTheme.textSecondary),
+        const SizedBox(width: 3),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: AppTheme.textSecondary,
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 }
