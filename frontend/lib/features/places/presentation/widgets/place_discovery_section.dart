@@ -262,10 +262,14 @@ class _PlacesHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final hasEyebrow = eyebrow.trim().isNotEmpty;
+    final hasTitle = title.trim().isNotEmpty;
     final hasDescription = description.trim().isNotEmpty;
+    final compactHero = !hasEyebrow && !hasTitle && !hasDescription;
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: compactHero
+          ? const EdgeInsets.fromLTRB(24, 0, 24, 14)
+          : const EdgeInsets.all(24),
       decoration: BoxDecoration(
         border: showDivider
             ? const Border(bottom: BorderSide(color: AppTheme.inputBorder))
@@ -294,13 +298,15 @@ class _PlacesHero extends StatelessWidget {
             ),
             const SizedBox(height: 14),
           ],
-          Text(
-            title,
-            style: theme.textTheme.headlineLarge?.copyWith(
-              fontSize: titleFontSize,
-              color: AppTheme.textPrimary,
+          if (hasTitle) ...[
+            Text(
+              title,
+              style: theme.textTheme.headlineLarge?.copyWith(
+                fontSize: titleFontSize,
+                color: AppTheme.textPrimary,
+              ),
             ),
-          ),
+          ],
           if (hasDescription) ...[
             const SizedBox(height: 10),
             Text(
@@ -310,7 +316,7 @@ class _PlacesHero extends StatelessWidget {
               ),
             ),
           ],
-          const SizedBox(height: 20),
+          if (!compactHero) const SizedBox(height: 20),
           LayoutBuilder(
             builder: (context, constraints) {
               final compact = constraints.maxWidth < 760;
@@ -321,7 +327,7 @@ class _PlacesHero extends StatelessWidget {
                 onChanged: onChanged,
                 style: theme.textTheme.bodyLarge,
                 decoration: InputDecoration(
-                  hintText: 'Busque por nome, bairro, cidade ou autoria',
+                  hintText: 'Busque por nome, bairro, cidade ou categoria',
                   prefixIcon: const Icon(Icons.search_rounded),
                   filled: true,
                   fillColor: AppTheme.primaryBrand.withValues(alpha: 0.03),
@@ -344,20 +350,20 @@ class _PlacesHero extends StatelessWidget {
                   backgroundColor: AppTheme.primaryBrand,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 16,
+                    horizontal: 14,
+                    vertical: 12,
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                icon: const Icon(Icons.add_business_outlined),
-                label: const Text('Novo Estabelecimento'),
+                icon: const Icon(Icons.add_business_outlined, size: 18),
+                label: const Text('Novo local'),
               );
 
               if (compact) {
                 return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     searchField,
                     const SizedBox(height: 12),
@@ -370,7 +376,7 @@ class _PlacesHero extends StatelessWidget {
                 children: [
                   Expanded(flex: 7, child: searchField),
                   const SizedBox(width: 12),
-                  Expanded(flex: 3, child: createButton),
+                  createButton,
                 ],
               );
             },
@@ -613,36 +619,38 @@ class _PlaceSummaryTileState extends State<_PlaceSummaryTile> {
                 ),
               ),
               const SizedBox(width: 12),
-              Flexible(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _TagChip(
-                      label: place.category.name,
-                      color: AppTheme.primaryBrand,
-                    ),
-                    const SizedBox(height: 6),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      alignment: WrapAlignment.end,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        _ReviewMetric(
-                          icon: Icons.star_rounded,
-                          label: _scoreLabel(place),
+              ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 112, maxWidth: 148),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: _TagChip(
+                          label: place.category.name,
+                          color: AppTheme.primaryBrand,
                         ),
-                        _ReviewMetric(
-                          icon: Icons.rate_review_outlined,
-                          label: _reviewsLabel(place),
+                      ),
+                      const SizedBox(height: 7),
+                      _RatingMetric(label: _scoreLabel(place)),
+                      const SizedBox(height: 3),
+                      Text(
+                        _reviewsLabel(place),
+                        textAlign: TextAlign.right,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppTheme.textSecondary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Icon(
                 Icons.chevron_right_rounded,
                 size: 20,
@@ -658,28 +666,35 @@ class _PlaceSummaryTileState extends State<_PlaceSummaryTile> {
   }
 }
 
-class _ReviewMetric extends StatelessWidget {
-  const _ReviewMetric({required this.icon, required this.label});
+class _RatingMetric extends StatelessWidget {
+  const _RatingMetric({required this.label});
 
-  final IconData icon;
   final String label;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 15, color: AppTheme.textSecondary),
-        const SizedBox(width: 3),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: AppTheme.textSecondary,
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-          ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppTheme.primaryBrand.withValues(alpha: 0.09),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.star_rounded, size: 18, color: Color(0xFFE0A326)),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

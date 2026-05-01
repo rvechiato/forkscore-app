@@ -44,7 +44,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(const ValueKey('home-page')), findsOneWidget);
-      expect(find.textContaining('Bem-vindo'), findsOneWidget);
+      expect(find.textContaining('Olá,'), findsOneWidget);
+      expect(find.textContaining('Bem-vindo'), findsNothing);
       expect(find.text('Pesquisa de Lugares'), findsNothing);
       expect(find.byKey(const Key('places-search-field')), findsOneWidget);
       expect(find.byKey(const Key('new-establishment-button')), findsOneWidget);
@@ -136,7 +137,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('home-page')), findsOneWidget);
-    expect(find.textContaining('Bem-vindo'), findsOneWidget);
+    expect(find.textContaining('Olá,'), findsOneWidget);
+    expect(find.textContaining('Bem-vindo'), findsNothing);
     expect(find.text('Pesquisa de Lugares'), findsNothing);
     expect(find.byKey(const Key('places-search-field')), findsOneWidget);
     expect(find.byKey(const Key('new-establishment-button')), findsOneWidget);
