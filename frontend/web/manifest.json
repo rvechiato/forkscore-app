@@ -1,11 +1,11 @@
 {
-    "name": "frontend",
-    "short_name": "frontend",
+    "name": "ForkScore",
+    "short_name": "ForkScore",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F8F4EE",
+    "theme_color": "#D98A6C",
+    "description": "ForkScore",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

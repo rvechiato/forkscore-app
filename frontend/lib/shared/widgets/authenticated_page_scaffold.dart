@@ -28,7 +28,11 @@ class AuthenticatedPageScaffold extends StatelessWidget {
       backgroundColor: AppTheme.background,
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final horizontalPadding = constraints.maxWidth >= 900 ? 56.0 : 24.0;
+          final horizontalPadding = constraints.maxWidth >= 900
+              ? 56.0
+              : constraints.maxWidth < 430
+              ? 16.0
+              : 24.0;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.only(bottom: 60),
@@ -38,7 +42,7 @@ class AuthenticatedPageScaffold extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.fromLTRB(
                     horizontalPadding,
-                    40,
+                    constraints.maxWidth < 430 ? 28 : 40,
                     horizontalPadding,
                     24,
                   ),
@@ -91,39 +95,57 @@ class _AuthenticatedTopNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        if (showBackButton && Navigator.of(context).canPop()) ...[
-          IconButton(
-            tooltip: 'Back',
-            onPressed: () => Navigator.of(context).maybePop(),
-            icon: const Icon(Icons.arrow_back_rounded),
-          ),
-          const SizedBox(width: 8),
-        ],
-        const ForkScoreLogo(
-          showWordmark: true,
-          compact: true,
-          markWidth: 28,
-          wordmarkSize: 18,
-          subtitle: 'the society',
-        ),
-        const Spacer(),
-        Text(
-          userName,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppTheme.textSecondary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(width: 16),
-        TextButton(
-          onPressed: () => Navigator.of(context).pushNamed(AppRoutes.profile),
-          child: const Text('Perfil'),
-        ),
-        const SizedBox(width: 8),
-        TextButton(onPressed: onLogout, child: const Text('Sair')),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 390;
+
+        return Row(
+          children: [
+            if (showBackButton && Navigator.of(context).canPop()) ...[
+              IconButton(
+                tooltip: 'Back',
+                onPressed: () => Navigator.of(context).maybePop(),
+                icon: const Icon(Icons.arrow_back_rounded),
+              ),
+              const SizedBox(width: 8),
+            ],
+            ForkScoreLogo(
+              showWordmark: !compact,
+              compact: true,
+              markWidth: 28,
+              wordmarkSize: 18,
+              subtitle: compact ? null : 'the society',
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Flexible(
+                    child: Text(
+                      'Olá, $userName',
+                      textAlign: TextAlign.right,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  TextButton(
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed(AppRoutes.profile),
+                    child: const Text('Perfil'),
+                  ),
+                  const SizedBox(width: 4),
+                  TextButton(onPressed: onLogout, child: const Text('Sair')),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
