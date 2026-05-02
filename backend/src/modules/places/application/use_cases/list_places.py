@@ -53,6 +53,7 @@ class ListPlaces:
                     city=place.city,
                     category_id=str(place.category_id),
                     subcategory_id=str(place.subcategory_id),
+                    instagram_url=place.instagram_url,
                     category=PlaceCategoryOutput(
                         id=str(place.category_id),
                         name="" if category is None else category.name,

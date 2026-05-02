@@ -25,6 +25,7 @@ abstract class PlacesRepository {
     required String number,
     required String neighborhood,
     required String city,
+    String? instagramUrl,
     required String categoryId,
     required String subcategoryId,
   });

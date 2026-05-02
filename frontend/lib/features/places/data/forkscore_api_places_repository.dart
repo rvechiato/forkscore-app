@@ -88,6 +88,7 @@ class ForkScoreApiPlacesRepository implements PlacesRepository {
     required String number,
     required String neighborhood,
     required String city,
+    String? instagramUrl,
     required String categoryId,
     required String subcategoryId,
   }) async {
@@ -100,6 +101,7 @@ class ForkScoreApiPlacesRepository implements PlacesRepository {
         'number': number,
         'neighborhood': neighborhood,
         'city': city,
+        'instagram_url': instagramUrl,
         'category_id': categoryId,
         'subcategory_id': subcategoryId,
       }),
@@ -139,6 +141,7 @@ class ForkScoreApiPlacesRepository implements PlacesRepository {
       name: payload['name'] as String,
       neighborhood: payload['neighborhood'] as String,
       city: payload['city'] as String,
+      instagramUrl: payload['instagram_url'] as String?,
       category: _parseCategory(payload['category'] as Map<String, dynamic>),
       subcategory: _parseSubcategory(
         payload['subcategory'] as Map<String, dynamic>,
@@ -158,6 +161,7 @@ class ForkScoreApiPlacesRepository implements PlacesRepository {
       number: payload['number'] as String,
       neighborhood: payload['neighborhood'] as String,
       city: payload['city'] as String,
+      instagramUrl: payload['instagram_url'] as String?,
       category: _parseCategory(payload['category'] as Map<String, dynamic>),
       subcategory: _parseSubcategory(
         payload['subcategory'] as Map<String, dynamic>,

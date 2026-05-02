@@ -5,14 +5,9 @@ import '../../domain/models/place_summary.dart';
 import '../controllers/places_controller.dart';
 
 class PlacesPanel extends StatefulWidget {
-  const PlacesPanel({
-    super.key,
-    required this.controller,
-    required this.currentUserName,
-  });
+  const PlacesPanel({super.key, required this.controller});
 
   final PlacesController controller;
-  final String currentUserName;
 
   @override
   State<PlacesPanel> createState() => _PlacesPanelState();
@@ -25,6 +20,7 @@ class _PlacesPanelState extends State<PlacesPanel> {
   final _numberController = TextEditingController();
   final _neighborhoodController = TextEditingController();
   final _cityController = TextEditingController();
+  final _instagramController = TextEditingController();
   String? _selectedCategoryId;
   String? _selectedSubcategoryId;
 
@@ -47,6 +43,7 @@ class _PlacesPanelState extends State<PlacesPanel> {
     _numberController.dispose();
     _neighborhoodController.dispose();
     _cityController.dispose();
+    _instagramController.dispose();
     super.dispose();
   }
 
@@ -143,14 +140,6 @@ class _PlacesPanelState extends State<PlacesPanel> {
                 color: const Color(0xFF2E2118),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Autoria atual: ${widget.currentUserName}',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: const Color(0xFF6A5442),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
             const SizedBox(height: 20),
             Form(
               key: _formKey,
@@ -201,6 +190,16 @@ class _PlacesPanelState extends State<PlacesPanel> {
                     controller: _cityController,
                     decoration: const InputDecoration(labelText: 'Cidade'),
                     validator: _requiredValidator,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    key: const Key('place-instagram-field'),
+                    controller: _instagramController,
+                    decoration: const InputDecoration(
+                      labelText: 'Instagram do lugar',
+                      hintText: 'https://www.instagram.com/perfil',
+                    ),
+                    keyboardType: TextInputType.url,
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
@@ -388,6 +387,7 @@ class _PlacesPanelState extends State<PlacesPanel> {
       number: _numberController.text.trim(),
       neighborhood: _neighborhoodController.text.trim(),
       city: _cityController.text.trim(),
+      instagramUrl: _optionalValue(_instagramController.text),
       categoryId: _selectedCategoryId!,
       subcategoryId: _selectedSubcategoryId!,
     );
@@ -401,6 +401,7 @@ class _PlacesPanelState extends State<PlacesPanel> {
     _numberController.clear();
     _neighborhoodController.clear();
     _cityController.clear();
+    _instagramController.clear();
     setState(() {
       _selectedCategoryId = null;
       _selectedSubcategoryId = null;
@@ -420,6 +421,14 @@ class _PlacesPanelState extends State<PlacesPanel> {
       return 'Campo obrigatorio.';
     }
     return null;
+  }
+
+  String? _optionalValue(String value) {
+    final normalized = value.trim();
+    if (normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
   }
 
   String _scoreLabel(PlaceSummary place) {

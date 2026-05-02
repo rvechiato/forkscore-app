@@ -89,6 +89,7 @@ def test_create_place_registers_authenticated_author(client) -> None:
             "city": "Curitiba",
             "category_id": _category_id("Cafeteria"),
             "subcategory_id": _subcategory_id("Cafeteria", "Doceria"),
+            "instagram_url": "https://www.instagram.com/cafedocentro",
         },
     )
 
@@ -99,10 +100,53 @@ def test_create_place_registers_authenticated_author(client) -> None:
     assert body["number"] == "123"
     assert body["neighborhood"] == "Centro"
     assert body["city"] == "Curitiba"
+    assert body["instagram_url"] == "https://www.instagram.com/cafedocentro"
     assert body["category"]["name"] == "Cafeteria"
     assert body["subcategory"]["name"] == "Doceria"
     assert body["created_by"]["id"] == user["id"]
     assert body["created_by"]["name"] == "Rafa Vecchiato"
+
+
+def test_create_place_allows_missing_instagram_url(client) -> None:
+    token, _ = _register_and_get_token(client)
+
+    response = client.post(
+        "/places",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "name": "Cafe sem Rede",
+            "street": "Rua das Flores",
+            "number": "123",
+            "neighborhood": "Centro",
+            "city": "Curitiba",
+            "category_id": _category_id("Cafeteria"),
+            "subcategory_id": _subcategory_id("Cafeteria", "Doceria"),
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.json()["instagram_url"] is None
+
+
+def test_create_place_rejects_non_instagram_url(client) -> None:
+    token, _ = _register_and_get_token(client)
+
+    response = client.post(
+        "/places",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "name": "Cafe do Centro",
+            "street": "Rua das Flores",
+            "number": "123",
+            "neighborhood": "Centro",
+            "city": "Curitiba",
+            "category_id": _category_id("Cafeteria"),
+            "subcategory_id": _subcategory_id("Cafeteria", "Doceria"),
+            "instagram_url": "https://example.com/cafedocentro",
+        },
+    )
+
+    assert response.status_code == 422
 
 
 def test_create_place_requires_authentication(client) -> None:
@@ -187,6 +231,7 @@ def test_list_places_returns_registered_places(client) -> None:
             "city": "Curitiba",
             "category_id": _category_id("Cafeteria"),
             "subcategory_id": _subcategory_id("Cafeteria", "Cafeteria"),
+            "instagram_url": "https://instagram.com/cafedocentro",
         },
     )
     padaria_response = client.post(
@@ -231,6 +276,7 @@ def test_list_places_returns_registered_places(client) -> None:
     }
     assert body[1]["name"] == "Cafe do Centro"
     assert body[1]["id"] == cafe_id
+    assert body[1]["instagram_url"] == "https://instagram.com/cafedocentro"
     assert body[1]["created_by"]["id"] == first_user["id"]
     assert body[1]["review_summary"] == {
         "total_reviews": 0,
@@ -258,6 +304,7 @@ def test_get_place_by_id_returns_place_detail(client) -> None:
             "city": "Curitiba",
             "category_id": _category_id("Cafeteria"),
             "subcategory_id": _subcategory_id("Cafeteria", "Cafeteria"),
+            "instagram_url": "https://www.instagram.com/cafedocentro",
         },
     )
     place_id = create_response.json()["id"]
@@ -271,6 +318,7 @@ def test_get_place_by_id_returns_place_detail(client) -> None:
     body = response.json()
     assert body["id"] == place_id
     assert body["name"] == "Cafe do Centro"
+    assert body["instagram_url"] == "https://www.instagram.com/cafedocentro"
     assert body["subcategory"]["name"] == "Cafeteria"
     assert body["created_by"]["id"] == user["id"]
     assert body["created_by"]["name"] == "Rafa Vecchiato"

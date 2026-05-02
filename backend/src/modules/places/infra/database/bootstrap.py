@@ -61,7 +61,7 @@ _LEGACY_SUBCATEGORY_NAME = "Outros"
 
 
 def ensure_places_schema(engine: Engine, database_url: str) -> None:
-    """Apply lightweight SQLite schema changes for the places taxonomy."""
+    """Apply lightweight SQLite schema changes for the places module."""
 
     if not database_url.startswith("sqlite"):
         return
@@ -79,6 +79,10 @@ def ensure_places_schema(engine: Engine, database_url: str) -> None:
     if "subcategory_id" not in columns:
         statements.append(
             "ALTER TABLE places ADD COLUMN subcategory_id VARCHAR(36) NULL",
+        )
+    if "instagram_url" not in columns:
+        statements.append(
+            "ALTER TABLE places ADD COLUMN instagram_url VARCHAR(255) NULL",
         )
 
     if not statements:

@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from urllib.parse import urlparse
+
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -13,6 +15,7 @@ class CreatePlaceInput(BaseModel):
     city: str = Field(min_length=1, max_length=80)
     category_id: str = Field(min_length=1, max_length=64)
     subcategory_id: str = Field(min_length=1, max_length=64)
+    instagram_url: str | None = Field(default=None, max_length=255)
 
     @field_validator(
         "name",
@@ -28,6 +31,24 @@ class CreatePlaceInput(BaseModel):
         normalized = value.strip()
         if not normalized:
             raise ValueError("Field cannot be blank.")
+        return normalized
+
+    @field_validator("instagram_url")
+    @classmethod
+    def validate_instagram_url(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+
+        normalized = value.strip()
+        if not normalized:
+            return None
+
+        parsed = urlparse(normalized)
+        if parsed.scheme not in {"http", "https"}:
+            raise ValueError("Instagram URL must use http or https.")
+        if parsed.netloc.lower() not in {"instagram.com", "www.instagram.com"}:
+            raise ValueError("Instagram URL must use instagram.com.")
+
         return normalized
 
 
@@ -71,6 +92,7 @@ class PlaceSummaryOutput(BaseModel):
     city: str
     category_id: str
     subcategory_id: str
+    instagram_url: str | None = None
     category: PlaceCategoryOutput
     subcategory: PlaceSubcategoryOutput
     created_by: PlaceAuthorOutput
@@ -88,6 +110,7 @@ class PlaceDetailOutput(BaseModel):
     city: str
     category_id: str
     subcategory_id: str
+    instagram_url: str | None = None
     category: PlaceCategoryOutput
     subcategory: PlaceSubcategoryOutput
     created_by: PlaceAuthorOutput

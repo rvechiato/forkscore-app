@@ -170,6 +170,11 @@ void main() {
 
     expect(find.byKey(const Key('place-create-page')), findsOneWidget);
     expect(find.byKey(const Key('create-place-name-field')), findsOneWidget);
+    expect(
+      find.byKey(const Key('create-place-instagram-field')),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Autoria atual'), findsNothing);
     expect(find.byKey(const Key('submit-new-establishment')), findsOneWidget);
   });
 

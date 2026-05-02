@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:forkscore_frontend/features/places/data/forkscore_api_places_repository.dart';
 import 'package:forkscore_frontend/shared/http/simple_http_client.dart';
@@ -24,25 +26,69 @@ void main() {
       final places = await repository.listPlaces(accessToken: 'token-123');
 
       expect(places, hasLength(2));
+      expect(places.first.instagramUrl, isNull);
       expect(places.first.reviewSummary.totalReviews, 2);
       expect(places.first.reviewSummary.averageRating, 4.3);
       expect(places.last.reviewSummary.totalReviews, 0);
       expect(places.last.reviewSummary.averageRating, isNull);
     });
+
+    test('cria place enviando link opcional do Instagram', () async {
+      final client = _FakeHttpClient(
+        postHandler: (uri, headers, body) async {
+          expect(uri.toString(), 'https://api.example.com/places');
+          expect(headers['authorization'], 'Bearer token-123');
+          final payload = jsonDecode(body!) as Map<String, dynamic>;
+          expect(
+            payload['instagram_url'],
+            'https://www.instagram.com/cafedocentro',
+          );
+          return const HttpResponseData(
+            statusCode: 201,
+            body:
+                '{"id":"place-1","name":"Cafe do Centro","street":"Rua das Flores","number":"123","neighborhood":"Centro","city":"Curitiba","instagram_url":"https://www.instagram.com/cafedocentro","category":{"id":"cat","name":"Cafeteria","slug":"cafeteria"},"subcategory":{"id":"sub","category_id":"cat","name":"Cafeteria","slug":"cafeteria"},"created_by":{"id":"user-1","name":"Rafa"}}',
+          );
+        },
+      );
+      final repository = ForkScoreApiPlacesRepository(
+        baseUrl: 'https://api.example.com',
+        client: client,
+      );
+
+      final place = await repository.createPlace(
+        accessToken: 'token-123',
+        name: 'Cafe do Centro',
+        street: 'Rua das Flores',
+        number: '123',
+        neighborhood: 'Centro',
+        city: 'Curitiba',
+        instagramUrl: 'https://www.instagram.com/cafedocentro',
+        categoryId: 'cat',
+        subcategoryId: 'sub',
+      );
+
+      expect(place.instagramUrl, 'https://www.instagram.com/cafedocentro');
+    });
   });
 }
 
 class _FakeHttpClient implements SimpleHttpClient {
-  _FakeHttpClient({required this.getHandler});
+  _FakeHttpClient({this.getHandler, this.postHandler});
 
-  final Future<HttpResponseData> Function(Uri, Map<String, String>) getHandler;
+  final Future<HttpResponseData> Function(Uri, Map<String, String>)? getHandler;
+  final Future<HttpResponseData> Function(Uri, Map<String, String>, String?)?
+  postHandler;
 
   @override
   Future<HttpResponseData> get(
     Uri uri, {
     Map<String, String> headers = const {},
   }) {
-    return getHandler(uri, headers);
+    final handler = getHandler;
+    if (handler == null) {
+      throw UnimplementedError();
+    }
+    return handler(uri, headers);
   }
 
   @override
@@ -51,7 +97,11 @@ class _FakeHttpClient implements SimpleHttpClient {
     Map<String, String> headers = const {},
     String? body,
   }) {
-    throw UnimplementedError();
+    final handler = postHandler;
+    if (handler == null) {
+      throw UnimplementedError();
+    }
+    return handler(uri, headers, body);
   }
 
   @override
