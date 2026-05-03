@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../shared/theme/app_theme.dart';
 import '../../domain/models/place_review_summary.dart';
-import '../../domain/models/recent_place_review.dart';
-import '../../domain/models/recent_review_comment.dart';
 import '../../domain/reviews_repository.dart';
 import '../controllers/place_review_summary_controller.dart';
 
@@ -247,169 +245,249 @@ class _ReviewSummaryContent extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 18),
-        Text(
-          'Comentarios recentes',
-          style: theme.textTheme.titleMedium?.copyWith(
-            color: AppTheme.textPrimary,
+        _CriteriaRatingsPanel(theme: theme, summary: summary),
+        if (summary.recommendationSummary.hasReviews) ...[
+          const SizedBox(height: 18),
+          _RecommendationBreakdownBar(
+            theme: theme,
+            summary: summary.recommendationSummary,
+            totalReviews: summary.totalReviews,
           ),
-        ),
-        const SizedBox(height: 12),
-        for (final review in summary.recentReviews) ...[
-          _RecentReviewCard(theme: theme, review: review),
-          if (review != summary.recentReviews.last) const SizedBox(height: 12),
         ],
       ],
     );
   }
 }
 
-class _RecentReviewCard extends StatelessWidget {
-  const _RecentReviewCard({required this.theme, required this.review});
+class _CriteriaRatingsPanel extends StatelessWidget {
+  const _CriteriaRatingsPanel({required this.theme, required this.summary});
 
   final ThemeData theme;
-  final RecentPlaceReview review;
+  final PlaceReviewSummary summary;
 
   @override
   Widget build(BuildContext context) {
-    final comments = review.comments.take(2).toList(growable: false);
+    final ratingsByCode = {
+      for (final rating in summary.criteriaRatings) rating.code: rating,
+    };
+    final ratings = PlaceReviewCriterionRatingCode.orderedValues
+        .map((code) {
+          return ratingsByCode[code] ??
+              PlaceReviewCriterionRating(
+                code: code,
+                label: code.label,
+                averageRating: null,
+                totalReviews: 0,
+              );
+        })
+        .toList(growable: false);
 
-    return Container(
-      key: Key('place-review-item-${review.id}'),
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.inputBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      review.author.name ?? 'Avaliador',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.textPrimary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _formatDate(review.createdAt),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppTheme.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryBrand.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  '${review.overallRating.toStringAsFixed(1)} ★',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppTheme.primaryBrand,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _RecommendationChip(review: review),
-              for (final comment in comments)
-                _CommentChip(theme: theme, comment: comment),
-            ],
-          ),
+    return Column(
+      key: const Key('place-review-criteria-ratings'),
+      children: [
+        for (final rating in ratings) ...[
+          _CriterionRatingRow(theme: theme, rating: rating),
+          if (rating != ratings.last) const SizedBox(height: 12),
         ],
-      ),
+      ],
     );
-  }
-
-  String _formatDate(DateTime value) {
-    final localValue = value.toLocal();
-    final day = localValue.day.toString().padLeft(2, '0');
-    final month = localValue.month.toString().padLeft(2, '0');
-    final year = localValue.year.toString();
-    return '$day/$month/$year';
   }
 }
 
-class _RecommendationChip extends StatelessWidget {
-  const _RecommendationChip({required this.review});
+class _CriterionRatingRow extends StatelessWidget {
+  const _CriterionRatingRow({required this.theme, required this.rating});
 
-  final RecentPlaceReview review;
+  final ThemeData theme;
+  final PlaceReviewCriterionRating rating;
 
   @override
   Widget build(BuildContext context) {
-    final recommended = review.recommendation.apiValue == 'recommended';
+    final averageLabel = rating.averageRating?.toStringAsFixed(1) ?? '-';
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: recommended ? const Color(0xFFEAF6EE) : const Color(0xFFFFF1EE),
-        borderRadius: BorderRadius.circular(12),
+    return Semantics(
+      key: Key('place-review-criterion-semantics-${rating.code.apiValue}'),
+      label:
+          '${rating.label}: media $averageLabel de 5, ${_ReadOnlyStarRating.roundedStarsFor(rating.averageRating)} de 5 estrelas preenchidas',
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final label = Text(
+            rating.label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppTheme.textPrimary,
+              fontWeight: FontWeight.w700,
+            ),
+          );
+          final score = Text(
+            averageLabel,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppTheme.textSecondary,
+              fontWeight: FontWeight.w700,
+            ),
+          );
+          final stars = _ReadOnlyStarRating(
+            key: Key('place-review-stars-${rating.code.apiValue}'),
+            rating: rating.averageRating,
+            semanticLabel: '${rating.label}: $averageLabel de 5',
+          );
+
+          if (constraints.maxWidth < 430) {
+            return Column(
+              key: Key('place-review-criterion-${rating.code.apiValue}'),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                label,
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [score, const SizedBox(width: 10), stars],
+                ),
+              ],
+            );
+          }
+
+          return Row(
+            key: Key('place-review-criterion-${rating.code.apiValue}'),
+            children: [
+              Expanded(child: label),
+              score,
+              const SizedBox(width: 10),
+              stars,
+            ],
+          );
+        },
       ),
-      child: Text(
-        review.recommendation.summaryLabel,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: recommended
-              ? const Color(0xFF2E6B4A)
-              : const Color(0xFF8D3F2B),
-          fontWeight: FontWeight.w700,
+    );
+  }
+}
+
+class _ReadOnlyStarRating extends StatelessWidget {
+  const _ReadOnlyStarRating({
+    super.key,
+    required this.rating,
+    required this.semanticLabel,
+  });
+
+  final double? rating;
+  final String semanticLabel;
+
+  static const _filledColor = Color(0xFFE0A11B);
+  static const _emptyColor = Color(0xFFD8D2CA);
+
+  static int roundedStarsFor(double? rating) {
+    if (rating == null) {
+      return 0;
+    }
+    return rating.round().clamp(0, 5);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filledStars = roundedStarsFor(rating);
+
+    return Semantics(
+      label: semanticLabel,
+      readOnly: true,
+      child: ExcludeSemantics(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var index = 0; index < 5; index++)
+              Icon(
+                Icons.star_rounded,
+                key: Key('place-review-star-$index'),
+                color: index < filledStars ? _filledColor : _emptyColor,
+                size: 20,
+              ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _CommentChip extends StatelessWidget {
-  const _CommentChip({required this.theme, required this.comment});
+class _RecommendationBreakdownBar extends StatelessWidget {
+  const _RecommendationBreakdownBar({
+    required this.theme,
+    required this.summary,
+    required this.totalReviews,
+  });
 
   final ThemeData theme;
-  final RecentReviewComment comment;
+  final PlaceReviewRecommendationSummary summary;
+  final int totalReviews;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(minWidth: 120, maxWidth: 280),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9F4EE),
-        borderRadius: BorderRadius.circular(12),
-      ),
+    final recommendedFlex = summary.recommendedCount;
+    final notRecommendedFlex = summary.notRecommendedCount;
+
+    return Semantics(
+      label:
+          'Recomendacao: ${summary.recommendedPercentage}% recomendado e ${summary.notRecommendedPercentage}% nao recomendado',
       child: Column(
+        key: const Key('place-review-recommendation-breakdown'),
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '${comment.code.label} ${comment.rating}/5',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: AppTheme.textPrimary,
-              fontWeight: FontWeight.w700,
+          Wrap(
+            spacing: 10,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                'Recomendacao',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Text(
+                '${summary.recommendedPercentage}% recomendado',
+                key: const Key('place-review-recommended-percentage'),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: const Color(0xFF2E6B4A),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Text(
+                '${summary.notRecommendedPercentage}% nao',
+                key: const Key('place-review-not-recommended-percentage'),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: const Color(0xFFB14A3A),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: SizedBox(
+              height: 12,
+              child: Row(
+                children: [
+                  if (recommendedFlex > 0)
+                    Expanded(
+                      flex: recommendedFlex,
+                      child: const ColoredBox(
+                        key: Key('place-review-recommended-bar'),
+                        color: Color(0xFF4F9D69),
+                      ),
+                    ),
+                  if (notRecommendedFlex > 0)
+                    Expanded(
+                      flex: notRecommendedFlex,
+                      child: const ColoredBox(
+                        key: Key('place-review-not-recommended-bar'),
+                        color: Color(0xFFD45A49),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
-            comment.comment,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
+            '$totalReviews review${totalReviews == 1 ? '' : 's'} consideradas',
             style: theme.textTheme.bodySmall?.copyWith(
               color: AppTheme.textSecondary,
             ),

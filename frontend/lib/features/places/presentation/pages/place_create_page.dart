@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/auth_scope.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/widgets/authenticated_page_scaffold.dart';
 import '../controllers/places_controller.dart';
@@ -21,6 +20,7 @@ class _PlaceCreatePageState extends State<PlaceCreatePage> {
   final _numberController = TextEditingController();
   final _neighborhoodController = TextEditingController();
   final _cityController = TextEditingController();
+  final _instagramController = TextEditingController();
   String? _selectedCategoryId;
   String? _selectedSubcategoryId;
 
@@ -43,14 +43,12 @@ class _PlaceCreatePageState extends State<PlaceCreatePage> {
     _numberController.dispose();
     _neighborhoodController.dispose();
     _cityController.dispose();
+    _instagramController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final currentUserName =
-        SessionScope.of(context).currentUser?.name ?? 'Gastronomo';
-
     return AuthenticatedPageScaffold(
       maxWidth: 760,
       showBackButton: true,
@@ -109,21 +107,6 @@ class _PlaceCreatePageState extends State<PlaceCreatePage> {
                         color: AppTheme.textSecondary,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        border: Border.all(color: AppTheme.inputBorder),
-                      ),
-                      child: Text(
-                        'Autoria atual: $currentUserName',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                    ),
                     const SizedBox(height: 20),
                     TextFormField(
                       key: const Key('create-place-name-field'),
@@ -170,6 +153,16 @@ class _PlaceCreatePageState extends State<PlaceCreatePage> {
                       controller: _cityController,
                       decoration: const InputDecoration(labelText: 'Cidade'),
                       validator: _requiredValidator,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      key: const Key('create-place-instagram-field'),
+                      controller: _instagramController,
+                      decoration: const InputDecoration(
+                        labelText: 'Instagram do lugar',
+                        hintText: 'https://www.instagram.com/perfil',
+                      ),
+                      keyboardType: TextInputType.url,
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
@@ -286,6 +279,7 @@ class _PlaceCreatePageState extends State<PlaceCreatePage> {
       number: _numberController.text.trim(),
       neighborhood: _neighborhoodController.text.trim(),
       city: _cityController.text.trim(),
+      instagramUrl: _optionalValue(_instagramController.text),
       categoryId: _selectedCategoryId!,
       subcategoryId: _selectedSubcategoryId!,
     );
@@ -309,5 +303,13 @@ class _PlaceCreatePageState extends State<PlaceCreatePage> {
       return 'Campo obrigatorio.';
     }
     return null;
+  }
+
+  String? _optionalValue(String value) {
+    final normalized = value.trim();
+    if (normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
   }
 }

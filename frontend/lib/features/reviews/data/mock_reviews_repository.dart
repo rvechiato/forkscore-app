@@ -35,6 +35,8 @@ class MockReviewsRepository implements ReviewsRepository {
         placeId: placeId,
         totalReviews: 0,
         averageRating: null,
+        criteriaRatings: _emptyCriteriaRatings(),
+        recommendationSummary: const PlaceReviewRecommendationSummary.empty(),
         recentReviews: const [],
       );
     }
@@ -49,6 +51,8 @@ class MockReviewsRepository implements ReviewsRepository {
       placeId: placeId,
       totalReviews: placeReviews.length,
       averageRating: _roundToSingleDecimal(averageRating),
+      criteriaRatings: _criteriaRatingsFor(placeReviews),
+      recommendationSummary: _recommendationSummaryFor(placeReviews),
       recentReviews: placeReviews
           .take(3)
           .map(_mapRecentReview)
@@ -193,6 +197,74 @@ class MockReviewsRepository implements ReviewsRepository {
       (sum, criterion) => sum + criterion.rating,
     );
     return (criteriaTotal + review.costBenefitRating) / 5;
+  }
+
+  List<PlaceReviewCriterionRating> _emptyCriteriaRatings() {
+    return PlaceReviewCriterionRatingCode.orderedValues
+        .map(
+          (code) => PlaceReviewCriterionRating(
+            code: code,
+            label: code.label,
+            averageRating: null,
+            totalReviews: 0,
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  List<PlaceReviewCriterionRating> _criteriaRatingsFor(
+    List<SubmittedReview> reviews,
+  ) {
+    return PlaceReviewCriterionRatingCode.orderedValues
+        .map((code) {
+          final average = switch (code) {
+            PlaceReviewCriterionRatingCode.costBenefit =>
+              reviews
+                      .map((review) => review.costBenefitRating)
+                      .reduce((left, right) => left + right) /
+                  reviews.length,
+            _ =>
+              reviews
+                      .map(
+                        (review) => review.criteria
+                            .firstWhere(
+                              (criterion) =>
+                                  criterion.code.apiValue == code.apiValue,
+                            )
+                            .rating,
+                      )
+                      .reduce((left, right) => left + right) /
+                  reviews.length,
+          };
+
+          return PlaceReviewCriterionRating(
+            code: code,
+            label: code.label,
+            averageRating: _roundToSingleDecimal(average),
+            totalReviews: reviews.length,
+          );
+        })
+        .toList(growable: false);
+  }
+
+  PlaceReviewRecommendationSummary _recommendationSummaryFor(
+    List<SubmittedReview> reviews,
+  ) {
+    final recommendedCount = reviews
+        .where(
+          (review) => review.recommendation == ReviewRecommendation.recommended,
+        )
+        .length;
+    final notRecommendedCount = reviews.length - recommendedCount;
+    final recommendedPercentage = (recommendedCount * 100 / reviews.length)
+        .round();
+
+    return PlaceReviewRecommendationSummary(
+      recommendedCount: recommendedCount,
+      notRecommendedCount: notRecommendedCount,
+      recommendedPercentage: recommendedPercentage,
+      notRecommendedPercentage: 100 - recommendedPercentage,
+    );
   }
 
   double _roundToSingleDecimal(double value) {

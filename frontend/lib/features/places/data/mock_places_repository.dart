@@ -45,6 +45,7 @@ class MockPlacesRepository implements PlacesRepository {
     required String number,
     required String neighborhood,
     required String city,
+    String? instagramUrl,
     required String categoryId,
     required String subcategoryId,
   }) async {
@@ -76,6 +77,7 @@ class MockPlacesRepository implements PlacesRepository {
       number: number.trim(),
       neighborhood: neighborhood.trim(),
       city: city.trim(),
+      instagramUrl: _normalizeOptional(instagramUrl),
       category: category,
       subcategory: subcategory,
       createdBy: _authorFromToken(accessToken),
@@ -109,6 +111,7 @@ class MockPlacesRepository implements PlacesRepository {
             name: place.name,
             neighborhood: place.neighborhood,
             city: place.city,
+            instagramUrl: place.instagramUrl,
             category: place.category,
             subcategory: place.subcategory,
             createdBy: place.createdBy,
@@ -268,6 +271,7 @@ class MockPlacesRepository implements PlacesRepository {
         number: '123',
         neighborhood: 'Centro',
         city: 'Curitiba',
+        instagramUrl: 'https://www.instagram.com/cafedocentro',
         category: _categoryById('cat_cafeteria'),
         subcategory: _subcategoryById('sub_cafeteria'),
         createdBy: const PlaceAuthor(id: 'user-1', name: 'Gastronomo'),
@@ -279,6 +283,7 @@ class MockPlacesRepository implements PlacesRepository {
         number: '987',
         neighborhood: 'Vila Nova',
         city: 'Joinville',
+        instagramUrl: null,
         category: _categoryById('cat_cafeteria'),
         subcategory: _subcategoryById('sub_padaria_gourmet'),
         createdBy: const PlaceAuthor(id: 'user-1', name: 'Gastronomo'),
@@ -290,6 +295,7 @@ class MockPlacesRepository implements PlacesRepository {
         number: '45',
         neighborhood: 'Batel',
         city: 'Curitiba',
+        instagramUrl: null,
         category: _categoryById('cat_restaurante'),
         subcategory: _subcategoryById('sub_casual_dining'),
         createdBy: const PlaceAuthor(id: 'user-1', name: 'Gastronomo'),
@@ -317,5 +323,13 @@ class MockPlacesRepository implements PlacesRepository {
 
   Future<void> _simulateLatency() {
     return Future<void>.delayed(const Duration(milliseconds: 80));
+  }
+
+  String? _normalizeOptional(String? value) {
+    final normalized = value?.trim();
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
   }
 }

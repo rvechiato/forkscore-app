@@ -82,6 +82,7 @@ class PlaceModel(Base):
     number: Mapped[str] = mapped_column(String(20), nullable=False)
     neighborhood: Mapped[str] = mapped_column(String(80), nullable=False)
     city: Mapped[str] = mapped_column(String(80), nullable=False)
+    instagram_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     category_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("categories.id", ondelete="RESTRICT"),
@@ -112,6 +113,7 @@ class PlaceModel(Base):
             number=self.number,
             neighborhood=self.neighborhood,
             city=self.city,
+            instagram_url=self.instagram_url,
             category_id=UUID(self.category_id),
             subcategory_id=UUID(self.subcategory_id),
             created_by_user_id=self.created_by_user_id,

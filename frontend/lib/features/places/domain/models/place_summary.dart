@@ -9,6 +9,7 @@ class PlaceSummary {
     required this.name,
     required this.neighborhood,
     required this.city,
+    this.instagramUrl,
     required this.category,
     required this.subcategory,
     required this.createdBy,
@@ -19,6 +20,7 @@ class PlaceSummary {
   final String name;
   final String neighborhood;
   final String city;
+  final String? instagramUrl;
   final PlaceCategory category;
   final PlaceSubcategory subcategory;
   final PlaceAuthor createdBy;

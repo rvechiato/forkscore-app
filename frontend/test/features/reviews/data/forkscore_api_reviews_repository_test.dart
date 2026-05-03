@@ -16,7 +16,7 @@ void main() {
           return const HttpResponseData(
             statusCode: 200,
             body:
-                '{"place_id":"place-1","total_reviews":2,"average_rating":4.2,"recent_reviews":[{"id":"rev-1","user":{"id":"user-1","name":"Rafa"},"recommendation":"recommended","overall_rating":4.4,"created_at":"2026-04-28T12:00:00Z","criteria":[{"code":"taste","rating":5,"comment":"Cafe equilibrado."}]}]}',
+                '{"place_id":"place-1","total_reviews":2,"average_rating":4.2,"criteria_ratings":[{"code":"taste","label":"Sabor","average_rating":4.5,"total_reviews":2},{"code":"cost_benefit","label":"Custo-beneficio","average_rating":4.0,"total_reviews":2}],"recommendation_summary":{"recommended_count":1,"not_recommended_count":1,"recommended_percentage":50,"not_recommended_percentage":50},"recent_reviews":[{"id":"rev-1","user":{"id":"user-1","name":"Rafa"},"recommendation":"recommended","overall_rating":4.4,"created_at":"2026-04-28T12:00:00Z","criteria":[{"code":"taste","rating":5,"comment":"Cafe equilibrado."}]}]}',
           );
         },
       );
@@ -33,6 +33,12 @@ void main() {
       expect(summary.placeId, 'place-1');
       expect(summary.totalReviews, 2);
       expect(summary.averageRating, 4.2);
+      expect(summary.criteriaRatings, hasLength(2));
+      expect(summary.criteriaRatings.first.code.apiValue, 'taste');
+      expect(summary.criteriaRatings.first.averageRating, 4.5);
+      expect(summary.recommendationSummary.recommendedCount, 1);
+      expect(summary.recommendationSummary.notRecommendedCount, 1);
+      expect(summary.recommendationSummary.recommendedPercentage, 50);
       expect(summary.recentReviews, hasLength(1));
       expect(summary.recentReviews.first.author.name, 'Rafa');
       expect(

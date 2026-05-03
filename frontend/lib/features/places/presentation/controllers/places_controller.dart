@@ -94,6 +94,7 @@ class PlacesController extends ChangeNotifier {
     required String number,
     required String neighborhood,
     required String city,
+    String? instagramUrl,
     required String categoryId,
     required String subcategoryId,
   }) async {
@@ -114,6 +115,7 @@ class PlacesController extends ChangeNotifier {
         number: number,
         neighborhood: neighborhood,
         city: city,
+        instagramUrl: instagramUrl,
         categoryId: categoryId,
         subcategoryId: subcategoryId,
       );
@@ -124,6 +126,7 @@ class PlacesController extends ChangeNotifier {
           name: detail.name,
           neighborhood: detail.neighborhood,
           city: detail.city,
+          instagramUrl: detail.instagramUrl,
           category: detail.category,
           subcategory: detail.subcategory,
           createdBy: detail.createdBy,

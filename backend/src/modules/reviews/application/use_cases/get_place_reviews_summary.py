@@ -1,17 +1,28 @@
 from src.modules.places.domain.errors import PlaceNotFoundError
 from src.modules.places.domain.ports.place_repository import PlaceRepository
 from src.modules.reviews.application.dtos import (
+    CriterionRatingOutput,
     PlaceReviewsSummaryOutput,
     RecentReviewOutput,
+    RecommendationSummaryOutput,
     ReviewAuthorOutput,
     ReviewCriterionOutput,
 )
+from src.modules.reviews.domain.entities.review import Review
 from src.modules.reviews.domain.ports.review_repository import ReviewRepository
 from src.modules.users.domain.ports.profile_repository import ProfileRepository
 
 
 class GetPlaceReviewsSummary:
     """Return the MVP review summary shown in the place detail."""
+
+    _CRITERIA_LABELS = (
+        ("taste", "Sabor"),
+        ("service", "Atendimento"),
+        ("options", "Opcoes"),
+        ("infrastructure", "Infraestrutura"),
+        ("cost_benefit", "Custo-beneficio"),
+    )
 
     def __init__(
         self,
@@ -36,6 +47,9 @@ class GetPlaceReviewsSummary:
                 sum(review.overall_rating for review in reviews) / total_reviews,
                 2,
             )
+
+        criteria_ratings = self._build_criteria_ratings(reviews)
+        recommendation_summary = self._build_recommendation_summary(reviews)
 
         recent_reviews = []
         for review in reviews[:3]:
@@ -66,5 +80,71 @@ class GetPlaceReviewsSummary:
             place_id=place_id,
             total_reviews=total_reviews,
             average_rating=average_rating,
+            criteria_ratings=criteria_ratings,
+            recommendation_summary=recommendation_summary,
             recent_reviews=recent_reviews,
+        )
+
+    def _build_criteria_ratings(
+        self,
+        reviews: list[Review],
+    ) -> list[CriterionRatingOutput]:
+        total_reviews = len(reviews)
+        if total_reviews == 0:
+            return [
+                CriterionRatingOutput(
+                    code=code,
+                    label=label,
+                    average_rating=None,
+                    total_reviews=0,
+                )
+                for code, label in self._CRITERIA_LABELS
+            ]
+
+        criterion_totals = {code: 0 for code, _ in self._CRITERIA_LABELS}
+        criterion_counts = {code: 0 for code, _ in self._CRITERIA_LABELS}
+        for review in reviews:
+            criterion_totals["cost_benefit"] += review.cost_benefit_rating
+            criterion_counts["cost_benefit"] += 1
+            for criterion in review.criteria:
+                criterion_totals[criterion.code] += criterion.rating
+                criterion_counts[criterion.code] += 1
+
+        return [
+            CriterionRatingOutput(
+                code=code,
+                label=label,
+                average_rating=None
+                if criterion_counts[code] == 0
+                else round(criterion_totals[code] / criterion_counts[code], 2),
+                total_reviews=criterion_counts[code],
+            )
+            for code, label in self._CRITERIA_LABELS
+        ]
+
+    def _build_recommendation_summary(
+        self,
+        reviews: list[Review],
+    ) -> RecommendationSummaryOutput:
+        total_reviews = len(reviews)
+        recommended_count = sum(
+            1 for review in reviews if review.recommendation == "recommended"
+        )
+        not_recommended_count = sum(
+            1 for review in reviews if review.recommendation == "not_recommended"
+        )
+
+        recommended_percentage = 0
+        not_recommended_percentage = 0
+        if total_reviews > 0:
+            recommended_percentage = int(
+                (recommended_count * 100 / total_reviews) + 0.5
+            )
+            not_recommended_percentage = 100 - recommended_percentage
+
+        return RecommendationSummaryOutput(
+            recommended_count=recommended_count,
+            not_recommended_count=not_recommended_count,
+            recommended_percentage=recommended_percentage,
+            not_recommended_percentage=not_recommended_percentage,
         )
