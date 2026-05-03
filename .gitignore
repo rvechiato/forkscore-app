@@ -13,6 +13,7 @@ backend/.env
 backend/.coverage
 backend/.venv/
 backend/.pytest_cache/
+/*.db
 backend/*.db
 backend/*.egg-info/
 
