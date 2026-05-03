@@ -216,6 +216,44 @@ def test_get_place_reviews_summary_returns_empty_state(client) -> None:
         "place_id": place["id"],
         "total_reviews": 0,
         "average_rating": None,
+        "criteria_ratings": [
+            {
+                "code": "taste",
+                "label": "Sabor",
+                "average_rating": None,
+                "total_reviews": 0,
+            },
+            {
+                "code": "service",
+                "label": "Atendimento",
+                "average_rating": None,
+                "total_reviews": 0,
+            },
+            {
+                "code": "options",
+                "label": "Opcoes",
+                "average_rating": None,
+                "total_reviews": 0,
+            },
+            {
+                "code": "infrastructure",
+                "label": "Infraestrutura",
+                "average_rating": None,
+                "total_reviews": 0,
+            },
+            {
+                "code": "cost_benefit",
+                "label": "Custo-beneficio",
+                "average_rating": None,
+                "total_reviews": 0,
+            },
+        ],
+        "recommendation_summary": {
+            "recommended_count": 0,
+            "not_recommended_count": 0,
+            "recommended_percentage": 0,
+            "not_recommended_percentage": 0,
+        },
         "recent_reviews": [],
     }
 
@@ -287,7 +325,7 @@ def test_get_place_reviews_summary_returns_average_and_recent_reviews(client, db
     payload_two["criteria"][2]["rating"] = 4
     payload_two["criteria"][3]["rating"] = 4
     payload_two["criteria"][1]["comment"] = "Servico rapido e cordial."
-    payload_two["recommendation"] = "recommended"
+    payload_two["recommendation"] = "not_recommended"
 
     payload_three = _valid_review_payload()
     payload_three["cost_benefit_rating"] = 2
@@ -331,6 +369,44 @@ def test_get_place_reviews_summary_returns_average_and_recent_reviews(client, db
     assert body["place_id"] == place["id"]
     assert body["total_reviews"] == 4
     assert body["average_rating"] == 2.95
+    assert body["criteria_ratings"] == [
+        {
+            "code": "taste",
+            "label": "Sabor",
+            "average_rating": 3.0,
+            "total_reviews": 4,
+        },
+        {
+            "code": "service",
+            "label": "Atendimento",
+            "average_rating": 3.25,
+            "total_reviews": 4,
+        },
+        {
+            "code": "options",
+            "label": "Opcoes",
+            "average_rating": 2.75,
+            "total_reviews": 4,
+        },
+        {
+            "code": "infrastructure",
+            "label": "Infraestrutura",
+            "average_rating": 2.75,
+            "total_reviews": 4,
+        },
+        {
+            "code": "cost_benefit",
+            "label": "Custo-beneficio",
+            "average_rating": 3.0,
+            "total_reviews": 4,
+        },
+    ]
+    assert body["recommendation_summary"] == {
+        "recommended_count": 1,
+        "not_recommended_count": 3,
+        "recommended_percentage": 25,
+        "not_recommended_percentage": 75,
+    }
     assert [item["id"] for item in body["recent_reviews"]] == [
         review_four["id"],
         review_three["id"],
@@ -345,6 +421,46 @@ def test_get_place_reviews_summary_returns_average_and_recent_reviews(client, db
         "options",
         "infrastructure",
     ]
+
+
+def test_get_place_reviews_summary_rounds_recommendation_percentages(client) -> None:
+    owner_token, _ = _register_and_get_token(client)
+    reviewer_two_token, _ = _register_and_get_token(
+        client,
+        name="Joana Silva",
+        email="joana-percent@example.com",
+    )
+    reviewer_three_token, _ = _register_and_get_token(
+        client,
+        name="Carlos Souza",
+        email="carlos-percent@example.com",
+    )
+    place = _create_place(client, owner_token)
+
+    _create_review(client, owner_token, place["id"])
+    not_recommended_payload = _valid_review_payload()
+    not_recommended_payload["recommendation"] = "not_recommended"
+    _create_review(client, reviewer_two_token, place["id"], not_recommended_payload)
+    _create_review(client, reviewer_three_token, place["id"], not_recommended_payload)
+
+    response = client.get(
+        f"/places/{place['id']}/reviews/summary",
+        headers={"Authorization": f"Bearer {owner_token}"},
+    )
+
+    assert response.status_code == 200
+    recommendation_summary = response.json()["recommendation_summary"]
+    assert recommendation_summary == {
+        "recommended_count": 1,
+        "not_recommended_count": 2,
+        "recommended_percentage": 33,
+        "not_recommended_percentage": 67,
+    }
+    assert (
+        recommendation_summary["recommended_percentage"]
+        + recommendation_summary["not_recommended_percentage"]
+        == 100
+    )
 
 
 def test_list_place_reviews_returns_all_reviews_newest_first(client, db_session) -> None:

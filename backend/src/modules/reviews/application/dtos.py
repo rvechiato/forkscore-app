@@ -5,6 +5,13 @@ from pydantic import BaseModel, Field, field_validator
 
 
 ReviewCriterionCode = Literal["taste", "service", "options", "infrastructure"]
+SummaryCriterionCode = Literal[
+    "taste",
+    "service",
+    "options",
+    "infrastructure",
+    "cost_benefit",
+]
 RecommendationValue = Literal["recommended", "not_recommended"]
 
 
@@ -82,12 +89,32 @@ class RecentReviewOutput(BaseModel):
     created_at: datetime
 
 
+class CriterionRatingOutput(BaseModel):
+    """Aggregated rating for a criterion in the place detail summary."""
+
+    code: SummaryCriterionCode
+    label: str
+    average_rating: float | None
+    total_reviews: int
+
+
+class RecommendationSummaryOutput(BaseModel):
+    """Aggregated recommendation split for the place detail summary."""
+
+    recommended_count: int
+    not_recommended_count: int
+    recommended_percentage: int | None
+    not_recommended_percentage: int | None
+
+
 class PlaceReviewsSummaryOutput(BaseModel):
     """Read model returned for the place detail review summary."""
 
     place_id: str
     total_reviews: int
     average_rating: float | None
+    criteria_ratings: list[CriterionRatingOutput]
+    recommendation_summary: RecommendationSummaryOutput
     recent_reviews: list[RecentReviewOutput]
 
 
