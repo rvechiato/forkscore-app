@@ -139,11 +139,11 @@ class _PlaceReviewsPageState extends State<PlaceReviewsPage> {
             children: [
               header,
               const SizedBox(height: 16),
+              cta,
+              const SizedBox(height: 16),
               summary,
               const SizedBox(height: 16),
               reviews,
-              const SizedBox(height: 16),
-              cta,
             ],
           );
         }
@@ -163,7 +163,7 @@ class _PlaceReviewsPageState extends State<PlaceReviewsPage> {
               flex: 4,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [summary, const SizedBox(height: 16), cta],
+                children: [cta, const SizedBox(height: 16), summary],
               ),
             ),
           ],
@@ -353,10 +353,7 @@ class _PlaceReviewsListSectionState extends State<_PlaceReviewsListSection> {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
-                      'Reviews',
-                      style: theme.textTheme.titleLarge,
-                    ),
+                    child: Text('Reviews', style: theme.textTheme.titleLarge),
                   ),
                   if (loading)
                     const SizedBox(

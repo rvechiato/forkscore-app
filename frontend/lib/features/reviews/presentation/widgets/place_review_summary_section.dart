@@ -225,22 +225,24 @@ class _ReviewSummaryContent extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 14),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  summary.averageRating?.toStringAsFixed(1) ?? '-',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    color: AppTheme.textPrimary,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    summary.averageRating?.toStringAsFixed(1) ?? '-',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: AppTheme.textPrimary,
+                    ),
                   ),
-                ),
-                Text(
-                  '${summary.totalReviews} review${summary.totalReviews == 1 ? '' : 's'} registradas',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.textSecondary,
+                  Text(
+                    '${summary.totalReviews} review${summary.totalReviews == 1 ? '' : 's'} registradas',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
