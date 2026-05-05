@@ -11,7 +11,9 @@ class Settings(BaseSettings):
     app_host: str = "0.0.0.0"
     app_port: int = 8000
     app_debug: bool = True
-    database_url: str = "sqlite:///./forkscore.db"
+    database_url: str = (
+        "postgresql+psycopg://forkscore:forkscore@localhost:5432/forkscore"
+    )
     jwt_secret_key: str = "change-me"
     jwt_algorithm: str = "HS256"
     jwt_expires_in_minutes: int = 60
@@ -28,4 +30,3 @@ def get_settings() -> Settings:
     """Return cached application settings."""
 
     return Settings()
-

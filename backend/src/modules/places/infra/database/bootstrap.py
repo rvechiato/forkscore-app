@@ -61,7 +61,7 @@ _LEGACY_SUBCATEGORY_NAME = "Outros"
 
 
 def ensure_places_schema(engine: Engine, database_url: str) -> None:
-    """Apply lightweight SQLite schema changes for the places module."""
+    """Apply lightweight legacy SQLite schema changes for the places module."""
 
     if not database_url.startswith("sqlite"):
         return

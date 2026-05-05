@@ -27,8 +27,7 @@ configuracoes de nuvem.
   SQLite;
   revisar `init_database` para separar bootstrap generico de migrations
   especificas de SQLite;
-  decidir se a entrega introduz migrations versionadas com baseline minimo ou
-  mantem bootstrap controlado no MVP, registrando a escolha;
+  manter bootstrap controlado no MVP, sem Alembic nesta etapa;
   garantir que `seed_places_taxonomy` rode de forma idempotente em PostgreSQL;
   revisar modelos SQLAlchemy, FKs, indices, tipos `DateTime(timezone=True)`,
   `Date`, `Boolean`, `Float`, `String` e relacionamentos.
@@ -58,11 +57,15 @@ configuracoes de nuvem.
   houver decisao explicita na implementacao;
   preparar a configuracao para que um Postgres gerenciado use a mesma
   `DATABASE_URL`.
+  Migrations versionadas ficam fora desta implementacao inicial e devem ser
+  avaliadas em spec propria quando houver evolucao de schema com dados
+  existentes.
 
 ## Docker compose e ambiente
 
 - Criar ou atualizar `docker-compose.yml` com servico PostgreSQL local.
 - Definir credenciais e database de desenvolvimento simples e documentadas.
+- Separar banco de desenvolvimento e banco de testes no compose local.
 - Atualizar `.env.example` para apontar para PostgreSQL local ou explicar a
   variavel principal esperada.
 - Documentar comandos para:
