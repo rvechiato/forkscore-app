@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/widgets/authenticated_page_scaffold.dart';
+import '../../data/photon_place_location_search_repository.dart';
 import '../controllers/places_controller.dart';
+import '../widgets/place_location_picker.dart';
 
 class PlaceCreatePage extends StatefulWidget {
   const PlaceCreatePage({super.key, required this.controller});
@@ -21,8 +23,11 @@ class _PlaceCreatePageState extends State<PlaceCreatePage> {
   final _neighborhoodController = TextEditingController();
   final _cityController = TextEditingController();
   final _instagramController = TextEditingController();
+  final _locationSearchRepository = PhotonPlaceLocationSearchRepository();
   String? _selectedCategoryId;
   String? _selectedSubcategoryId;
+  double? _selectedLatitude;
+  double? _selectedLongitude;
 
   @override
   void initState() {
@@ -119,6 +124,7 @@ class _PlaceCreatePageState extends State<PlaceCreatePage> {
                       key: const Key('create-place-street-field'),
                       controller: _streetController,
                       decoration: const InputDecoration(labelText: 'Rua'),
+                      onChanged: (_) => setState(() {}),
                       validator: _requiredValidator,
                     ),
                     const SizedBox(height: 12),
@@ -131,6 +137,7 @@ class _PlaceCreatePageState extends State<PlaceCreatePage> {
                             decoration: const InputDecoration(
                               labelText: 'Numero',
                             ),
+                            onChanged: (_) => setState(() {}),
                             validator: _requiredValidator,
                           ),
                         ),
@@ -142,6 +149,7 @@ class _PlaceCreatePageState extends State<PlaceCreatePage> {
                             decoration: const InputDecoration(
                               labelText: 'Bairro',
                             ),
+                            onChanged: (_) => setState(() {}),
                             validator: _requiredValidator,
                           ),
                         ),
@@ -152,6 +160,7 @@ class _PlaceCreatePageState extends State<PlaceCreatePage> {
                       key: const Key('create-place-city-field'),
                       controller: _cityController,
                       decoration: const InputDecoration(labelText: 'Cidade'),
+                      onChanged: (_) => setState(() {}),
                       validator: _requiredValidator,
                     ),
                     const SizedBox(height: 12),
@@ -221,6 +230,18 @@ class _PlaceCreatePageState extends State<PlaceCreatePage> {
                             },
                       validator: _requiredSelectionValidator,
                     ),
+                    const SizedBox(height: 16),
+                    PlaceLocationPicker(
+                      latitude: _selectedLatitude,
+                      longitude: _selectedLongitude,
+                      street: _streetController.text,
+                      number: _numberController.text,
+                      neighborhood: _neighborhoodController.text,
+                      city: _cityController.text,
+                      searchRepository: _locationSearchRepository,
+                      onLocationChanged: _setLocation,
+                      onClear: _clearLocation,
+                    ),
                     const SizedBox(height: 20),
                     if (widget.controller.errorMessage != null) ...[
                       Text(
@@ -282,6 +303,8 @@ class _PlaceCreatePageState extends State<PlaceCreatePage> {
       instagramUrl: _optionalValue(_instagramController.text),
       categoryId: _selectedCategoryId!,
       subcategoryId: _selectedSubcategoryId!,
+      latitude: _selectedLatitude,
+      longitude: _selectedLongitude,
     );
 
     if (!mounted || widget.controller.errorMessage != null) {
@@ -311,5 +334,19 @@ class _PlaceCreatePageState extends State<PlaceCreatePage> {
       return null;
     }
     return normalized;
+  }
+
+  void _setLocation(double latitude, double longitude) {
+    setState(() {
+      _selectedLatitude = latitude;
+      _selectedLongitude = longitude;
+    });
+  }
+
+  void _clearLocation() {
+    setState(() {
+      _selectedLatitude = null;
+      _selectedLongitude = null;
+    });
   }
 }

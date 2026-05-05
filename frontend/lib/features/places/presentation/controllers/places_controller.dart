@@ -97,6 +97,8 @@ class PlacesController extends ChangeNotifier {
     String? instagramUrl,
     required String categoryId,
     required String subcategoryId,
+    double? latitude,
+    double? longitude,
   }) async {
     final accessToken = _accessTokenProvider();
     if (accessToken == null) {
@@ -118,6 +120,8 @@ class PlacesController extends ChangeNotifier {
         instagramUrl: instagramUrl,
         categoryId: categoryId,
         subcategoryId: subcategoryId,
+        latitude: latitude,
+        longitude: longitude,
       );
       _selectedPlace = detail;
       _places = [
@@ -127,6 +131,8 @@ class PlacesController extends ChangeNotifier {
           neighborhood: detail.neighborhood,
           city: detail.city,
           instagramUrl: detail.instagramUrl,
+          latitude: detail.latitude,
+          longitude: detail.longitude,
           category: detail.category,
           subcategory: detail.subcategory,
           createdBy: detail.createdBy,

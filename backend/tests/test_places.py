@@ -65,6 +65,21 @@ def _valid_review_payload() -> dict:
     }
 
 
+def _valid_place_payload(**overrides) -> dict:
+    payload = {
+        "name": "Cafe do Centro",
+        "street": "Rua das Flores",
+        "number": "123",
+        "neighborhood": "Centro",
+        "city": "Curitiba",
+        "category_id": _category_id("Cafeteria"),
+        "subcategory_id": _subcategory_id("Cafeteria", "Doceria"),
+        "instagram_url": "https://www.instagram.com/cafedocentro",
+    }
+    payload.update(overrides)
+    return payload
+
+
 def _create_review(client, token: str, place_id: str, payload: dict | None = None) -> dict:
     response = client.post(
         f"/places/{place_id}/reviews",
@@ -101,6 +116,8 @@ def test_create_place_registers_authenticated_author(client) -> None:
     assert body["neighborhood"] == "Centro"
     assert body["city"] == "Curitiba"
     assert body["instagram_url"] == "https://www.instagram.com/cafedocentro"
+    assert body["latitude"] is None
+    assert body["longitude"] is None
     assert body["category"]["name"] == "Cafeteria"
     assert body["subcategory"]["name"] == "Doceria"
     assert body["created_by"]["id"] == user["id"]
@@ -125,7 +142,70 @@ def test_create_place_allows_missing_instagram_url(client) -> None:
     )
 
     assert response.status_code == 201
-    assert response.json()["instagram_url"] is None
+    body = response.json()
+    assert body["instagram_url"] is None
+    assert body["latitude"] is None
+    assert body["longitude"] is None
+
+
+def test_create_place_accepts_valid_coordinates(client) -> None:
+    token, _ = _register_and_get_token(client)
+
+    response = client.post(
+        "/places",
+        headers={"Authorization": f"Bearer {token}"},
+        json=_valid_place_payload(
+            latitude=-25.4284,
+            longitude=-49.2733,
+        ),
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["latitude"] == -25.4284
+    assert body["longitude"] == -49.2733
+
+
+def test_create_place_rejects_partial_coordinates(client) -> None:
+    token, _ = _register_and_get_token(client)
+
+    latitude_response = client.post(
+        "/places",
+        headers={"Authorization": f"Bearer {token}"},
+        json=_valid_place_payload(latitude=-25.4284),
+    )
+    longitude_response = client.post(
+        "/places",
+        headers={"Authorization": f"Bearer {token}"},
+        json=_valid_place_payload(longitude=-49.2733),
+    )
+
+    assert latitude_response.status_code == 422
+    assert longitude_response.status_code == 422
+
+
+def test_create_place_rejects_latitude_out_of_range(client) -> None:
+    token, _ = _register_and_get_token(client)
+
+    response = client.post(
+        "/places",
+        headers={"Authorization": f"Bearer {token}"},
+        json=_valid_place_payload(latitude=-90.1, longitude=-49.2733),
+    )
+
+    assert response.status_code == 422
+
+
+def test_create_place_rejects_longitude_out_of_range(client) -> None:
+    token, _ = _register_and_get_token(client)
+
+    response = client.post(
+        "/places",
+        headers={"Authorization": f"Bearer {token}"},
+        json=_valid_place_payload(latitude=-25.4284, longitude=180.1),
+    )
+
+    assert response.status_code == 422
 
 
 def test_create_place_rejects_non_instagram_url(client) -> None:
@@ -232,6 +312,8 @@ def test_list_places_returns_registered_places(client) -> None:
             "category_id": _category_id("Cafeteria"),
             "subcategory_id": _subcategory_id("Cafeteria", "Cafeteria"),
             "instagram_url": "https://instagram.com/cafedocentro",
+            "latitude": -25.4284,
+            "longitude": -49.2733,
         },
     )
     padaria_response = client.post(
@@ -270,6 +352,8 @@ def test_list_places_returns_registered_places(client) -> None:
     assert body[0]["category"]["name"] == "Lanchonete"
     assert body[0]["created_by"]["id"] == second_user["id"]
     assert body[0]["created_by"]["name"] == "Pat Martins"
+    assert body[0]["latitude"] is None
+    assert body[0]["longitude"] is None
     assert body[0]["review_summary"] == {
         "total_reviews": 2,
         "average_rating": 4.3,
@@ -277,6 +361,8 @@ def test_list_places_returns_registered_places(client) -> None:
     assert body[1]["name"] == "Cafe do Centro"
     assert body[1]["id"] == cafe_id
     assert body[1]["instagram_url"] == "https://instagram.com/cafedocentro"
+    assert body[1]["latitude"] == -25.4284
+    assert body[1]["longitude"] == -49.2733
     assert body[1]["created_by"]["id"] == first_user["id"]
     assert body[1]["review_summary"] == {
         "total_reviews": 0,
@@ -305,6 +391,8 @@ def test_get_place_by_id_returns_place_detail(client) -> None:
             "category_id": _category_id("Cafeteria"),
             "subcategory_id": _subcategory_id("Cafeteria", "Cafeteria"),
             "instagram_url": "https://www.instagram.com/cafedocentro",
+            "latitude": -25.4284,
+            "longitude": -49.2733,
         },
     )
     place_id = create_response.json()["id"]
@@ -319,6 +407,8 @@ def test_get_place_by_id_returns_place_detail(client) -> None:
     assert body["id"] == place_id
     assert body["name"] == "Cafe do Centro"
     assert body["instagram_url"] == "https://www.instagram.com/cafedocentro"
+    assert body["latitude"] == -25.4284
+    assert body["longitude"] == -49.2733
     assert body["subcategory"]["name"] == "Cafeteria"
     assert body["created_by"]["id"] == user["id"]
     assert body["created_by"]["name"] == "Rafa Vecchiato"

@@ -47,6 +47,8 @@ void main() {
       find.byKey(const Key('place-review-summary-content')),
       findsOneWidget,
     );
+    expect(find.byKey(const Key('place-reviews-location-map')), findsOneWidget);
+    expect(find.byKey(const Key('place-location-marker')), findsOneWidget);
     expect(find.byKey(const Key('start-review-button')), findsOneWidget);
     expect(find.text('2 reviews registradas'), findsOneWidget);
     expect(
@@ -66,6 +68,7 @@ void main() {
 
     expect(find.byKey(const Key('place-review-summary-empty')), findsOneWidget);
     expect(find.byKey(const Key('place-reviews-list-empty')), findsOneWidget);
+    expect(find.byKey(const Key('place-reviews-location-map')), findsNothing);
     expect(find.byKey(const Key('start-review-button')), findsOneWidget);
   });
 
@@ -104,6 +107,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('place-reviews-page')), findsOneWidget);
+    expect(find.byKey(const Key('place-reviews-location-map')), findsOneWidget);
     expect(find.byKey(const Key('start-review-button')), findsOneWidget);
     expect(
       find.byKey(const Key('place-review-summary-content')),

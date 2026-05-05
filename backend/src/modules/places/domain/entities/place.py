@@ -16,6 +16,8 @@ class Place:
     category_id: UUID
     subcategory_id: UUID
     instagram_url: str | None
+    latitude: float | None
+    longitude: float | None
     created_by_user_id: str
     created_at: datetime
     updated_at: datetime

@@ -174,6 +174,11 @@ void main() {
       find.byKey(const Key('create-place-instagram-field')),
       findsOneWidget,
     );
+    expect(find.byKey(const Key('place-location-picker')), findsOneWidget);
+    expect(
+      find.byKey(const Key('place-location-picker-empty')),
+      findsOneWidget,
+    );
     expect(find.textContaining('Autoria atual'), findsNothing);
     expect(find.byKey(const Key('submit-new-establishment')), findsOneWidget);
   });

@@ -49,6 +49,8 @@ class GetPlaceById:
             category_id=str(place.category_id),
             subcategory_id=str(place.subcategory_id),
             instagram_url=place.instagram_url,
+            latitude=place.latitude,
+            longitude=place.longitude,
             category=PlaceCategoryOutput(
                 id=str(place.category_id),
                 name="" if category is None else category.name,

@@ -21,6 +21,8 @@ class SqlAlchemyPlaceRepository(PlaceRepository):
             neighborhood=place.neighborhood,
             city=place.city,
             instagram_url=place.instagram_url,
+            latitude=place.latitude,
+            longitude=place.longitude,
             category_id=str(place.category_id),
             subcategory_id=str(place.subcategory_id),
             created_by_user_id=place.created_by_user_id,

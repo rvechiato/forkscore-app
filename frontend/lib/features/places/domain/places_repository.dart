@@ -28,5 +28,7 @@ abstract class PlacesRepository {
     String? instagramUrl,
     required String categoryId,
     required String subcategoryId,
+    double? latitude,
+    double? longitude,
   });
 }
