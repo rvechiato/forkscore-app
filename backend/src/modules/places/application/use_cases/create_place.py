@@ -58,6 +58,8 @@ class CreatePlace:
             category_id=category.id,
             subcategory_id=subcategory.id,
             created_by_user_id=user_id,
+            latitude=data.latitude,
+            longitude=data.longitude,
             created_at=now,
             updated_at=now,
         )
@@ -75,6 +77,8 @@ class CreatePlace:
             subcategory_id=str(persisted_place.subcategory_id),
             category=self._map_category(category),
             subcategory=self._map_subcategory(subcategory),
+            latitude=persisted_place.latitude,
+            longitude=persisted_place.longitude,
             created_by=PlaceAuthorOutput(
                 id=persisted_place.created_by_user_id,
                 name=None if profile is None else profile.name,

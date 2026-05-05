@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.shared.infra.database.base import Base
@@ -83,6 +83,8 @@ class PlaceModel(Base):
     neighborhood: Mapped[str] = mapped_column(String(80), nullable=False)
     city: Mapped[str] = mapped_column(String(80), nullable=False)
     instagram_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+    longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     category_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("categories.id", ondelete="RESTRICT"),
@@ -114,6 +116,8 @@ class PlaceModel(Base):
             neighborhood=self.neighborhood,
             city=self.city,
             instagram_url=self.instagram_url,
+            latitude=self.latitude,
+            longitude=self.longitude,
             category_id=UUID(self.category_id),
             subcategory_id=UUID(self.subcategory_id),
             created_by_user_id=self.created_by_user_id,

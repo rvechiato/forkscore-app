@@ -84,6 +84,14 @@ def ensure_places_schema(engine: Engine, database_url: str) -> None:
         statements.append(
             "ALTER TABLE places ADD COLUMN instagram_url VARCHAR(255) NULL",
         )
+    if "latitude" not in columns:
+        statements.append(
+            "ALTER TABLE places ADD COLUMN latitude FLOAT NULL",
+        )
+    if "longitude" not in columns:
+        statements.append(
+            "ALTER TABLE places ADD COLUMN longitude FLOAT NULL",
+        )
 
     if not statements:
         return

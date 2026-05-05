@@ -14,7 +14,7 @@ void main() {
           return const HttpResponseData(
             statusCode: 200,
             body:
-                '[{"id":"place-1","name":"Cafe do Centro","neighborhood":"Centro","city":"Curitiba","category":{"id":"cat","name":"Cafeteria","slug":"cafeteria"},"subcategory":{"id":"sub","category_id":"cat","name":"Cafeteria","slug":"cafeteria"},"created_by":{"id":"user-1","name":"Rafa"},"review_summary":{"total_reviews":2,"average_rating":4.3}},{"id":"place-2","name":"Padaria da Vila","neighborhood":"Vila Nova","city":"Joinville","category":{"id":"cat","name":"Cafeteria","slug":"cafeteria"},"subcategory":{"id":"sub-padaria","category_id":"cat","name":"Padaria Gourmet","slug":"padaria-gourmet"},"created_by":{"id":"user-2","name":"Pat"},"review_summary":{"total_reviews":0,"average_rating":null}}]',
+                '[{"id":"place-1","name":"Cafe do Centro","neighborhood":"Centro","city":"Curitiba","latitude":-25.4284,"longitude":-49.2733,"category":{"id":"cat","name":"Cafeteria","slug":"cafeteria"},"subcategory":{"id":"sub","category_id":"cat","name":"Cafeteria","slug":"cafeteria"},"created_by":{"id":"user-1","name":"Rafa"},"review_summary":{"total_reviews":2,"average_rating":4.3}},{"id":"place-2","name":"Padaria da Vila","neighborhood":"Vila Nova","city":"Joinville","latitude":null,"longitude":null,"category":{"id":"cat","name":"Cafeteria","slug":"cafeteria"},"subcategory":{"id":"sub-padaria","category_id":"cat","name":"Padaria Gourmet","slug":"padaria-gourmet"},"created_by":{"id":"user-2","name":"Pat"},"review_summary":{"total_reviews":0,"average_rating":null}}]',
           );
         },
       );
@@ -27,26 +27,73 @@ void main() {
 
       expect(places, hasLength(2));
       expect(places.first.instagramUrl, isNull);
+      expect(places.first.latitude, -25.4284);
+      expect(places.first.longitude, -49.2733);
+      expect(places.first.hasLocation, isTrue);
+      expect(places.last.hasLocation, isFalse);
       expect(places.first.reviewSummary.totalReviews, 2);
       expect(places.first.reviewSummary.averageRating, 4.3);
       expect(places.last.reviewSummary.totalReviews, 0);
       expect(places.last.reviewSummary.averageRating, isNull);
     });
 
-    test('cria place enviando link opcional do Instagram', () async {
+    test(
+      'cria place enviando link opcional do Instagram e coordenadas',
+      () async {
+        final client = _FakeHttpClient(
+          postHandler: (uri, headers, body) async {
+            expect(uri.toString(), 'https://api.example.com/places');
+            expect(headers['authorization'], 'Bearer token-123');
+            final payload = jsonDecode(body!) as Map<String, dynamic>;
+            expect(
+              payload['instagram_url'],
+              'https://www.instagram.com/cafedocentro',
+            );
+            expect(payload['latitude'], -25.4284);
+            expect(payload['longitude'], -49.2733);
+            return const HttpResponseData(
+              statusCode: 201,
+              body:
+                  '{"id":"place-1","name":"Cafe do Centro","street":"Rua das Flores","number":"123","neighborhood":"Centro","city":"Curitiba","instagram_url":"https://www.instagram.com/cafedocentro","latitude":-25.4284,"longitude":-49.2733,"category":{"id":"cat","name":"Cafeteria","slug":"cafeteria"},"subcategory":{"id":"sub","category_id":"cat","name":"Cafeteria","slug":"cafeteria"},"created_by":{"id":"user-1","name":"Rafa"}}',
+            );
+          },
+        );
+        final repository = ForkScoreApiPlacesRepository(
+          baseUrl: 'https://api.example.com',
+          client: client,
+        );
+
+        final place = await repository.createPlace(
+          accessToken: 'token-123',
+          name: 'Cafe do Centro',
+          street: 'Rua das Flores',
+          number: '123',
+          neighborhood: 'Centro',
+          city: 'Curitiba',
+          instagramUrl: 'https://www.instagram.com/cafedocentro',
+          categoryId: 'cat',
+          subcategoryId: 'sub',
+          latitude: -25.4284,
+          longitude: -49.2733,
+        );
+
+        expect(place.instagramUrl, 'https://www.instagram.com/cafedocentro');
+        expect(place.latitude, -25.4284);
+        expect(place.longitude, -49.2733);
+        expect(place.hasLocation, isTrue);
+      },
+    );
+
+    test('omite coordenadas do payload quando nao foram definidas', () async {
       final client = _FakeHttpClient(
         postHandler: (uri, headers, body) async {
-          expect(uri.toString(), 'https://api.example.com/places');
-          expect(headers['authorization'], 'Bearer token-123');
           final payload = jsonDecode(body!) as Map<String, dynamic>;
-          expect(
-            payload['instagram_url'],
-            'https://www.instagram.com/cafedocentro',
-          );
+          expect(payload.containsKey('latitude'), isFalse);
+          expect(payload.containsKey('longitude'), isFalse);
           return const HttpResponseData(
             statusCode: 201,
             body:
-                '{"id":"place-1","name":"Cafe do Centro","street":"Rua das Flores","number":"123","neighborhood":"Centro","city":"Curitiba","instagram_url":"https://www.instagram.com/cafedocentro","category":{"id":"cat","name":"Cafeteria","slug":"cafeteria"},"subcategory":{"id":"sub","category_id":"cat","name":"Cafeteria","slug":"cafeteria"},"created_by":{"id":"user-1","name":"Rafa"}}',
+                '{"id":"place-1","name":"Cafe do Centro","street":"Rua das Flores","number":"123","neighborhood":"Centro","city":"Curitiba","instagram_url":null,"latitude":null,"longitude":null,"category":{"id":"cat","name":"Cafeteria","slug":"cafeteria"},"subcategory":{"id":"sub","category_id":"cat","name":"Cafeteria","slug":"cafeteria"},"created_by":{"id":"user-1","name":"Rafa"}}',
           );
         },
       );
@@ -62,12 +109,11 @@ void main() {
         number: '123',
         neighborhood: 'Centro',
         city: 'Curitiba',
-        instagramUrl: 'https://www.instagram.com/cafedocentro',
         categoryId: 'cat',
         subcategoryId: 'sub',
       );
 
-      expect(place.instagramUrl, 'https://www.instagram.com/cafedocentro');
+      expect(place.hasLocation, isFalse);
     });
   });
 }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../data/photon_place_location_search_repository.dart';
 import '../../domain/models/place_detail.dart';
 import '../../domain/models/place_summary.dart';
 import '../controllers/places_controller.dart';
+import 'place_location_picker.dart';
 
 class PlacesPanel extends StatefulWidget {
   const PlacesPanel({super.key, required this.controller});
@@ -21,8 +23,11 @@ class _PlacesPanelState extends State<PlacesPanel> {
   final _neighborhoodController = TextEditingController();
   final _cityController = TextEditingController();
   final _instagramController = TextEditingController();
+  final _locationSearchRepository = PhotonPlaceLocationSearchRepository();
   String? _selectedCategoryId;
   String? _selectedSubcategoryId;
+  double? _selectedLatitude;
+  double? _selectedLongitude;
 
   @override
   void initState() {
@@ -156,6 +161,7 @@ class _PlacesPanelState extends State<PlacesPanel> {
                     key: const Key('place-street-field'),
                     controller: _streetController,
                     decoration: const InputDecoration(labelText: 'Rua'),
+                    onChanged: (_) => setState(() {}),
                     validator: _requiredValidator,
                   ),
                   const SizedBox(height: 12),
@@ -168,6 +174,7 @@ class _PlacesPanelState extends State<PlacesPanel> {
                           decoration: const InputDecoration(
                             labelText: 'Numero',
                           ),
+                          onChanged: (_) => setState(() {}),
                           validator: _requiredValidator,
                         ),
                       ),
@@ -179,6 +186,7 @@ class _PlacesPanelState extends State<PlacesPanel> {
                           decoration: const InputDecoration(
                             labelText: 'Bairro',
                           ),
+                          onChanged: (_) => setState(() {}),
                           validator: _requiredValidator,
                         ),
                       ),
@@ -189,6 +197,7 @@ class _PlacesPanelState extends State<PlacesPanel> {
                     key: const Key('place-city-field'),
                     controller: _cityController,
                     decoration: const InputDecoration(labelText: 'Cidade'),
+                    onChanged: (_) => setState(() {}),
                     validator: _requiredValidator,
                   ),
                   const SizedBox(height: 12),
@@ -255,6 +264,18 @@ class _PlacesPanelState extends State<PlacesPanel> {
                             setState(() => _selectedSubcategoryId = value);
                           },
                     validator: _requiredSelectionValidator,
+                  ),
+                  const SizedBox(height: 16),
+                  PlaceLocationPicker(
+                    latitude: _selectedLatitude,
+                    longitude: _selectedLongitude,
+                    street: _streetController.text,
+                    number: _numberController.text,
+                    neighborhood: _neighborhoodController.text,
+                    city: _cityController.text,
+                    searchRepository: _locationSearchRepository,
+                    onLocationChanged: _setLocation,
+                    onClear: _clearLocation,
                   ),
                   const SizedBox(height: 18),
                   Row(
@@ -390,6 +411,8 @@ class _PlacesPanelState extends State<PlacesPanel> {
       instagramUrl: _optionalValue(_instagramController.text),
       categoryId: _selectedCategoryId!,
       subcategoryId: _selectedSubcategoryId!,
+      latitude: _selectedLatitude,
+      longitude: _selectedLongitude,
     );
 
     if (widget.controller.errorMessage != null) {
@@ -405,6 +428,8 @@ class _PlacesPanelState extends State<PlacesPanel> {
     setState(() {
       _selectedCategoryId = null;
       _selectedSubcategoryId = null;
+      _selectedLatitude = null;
+      _selectedLongitude = null;
     });
     widget.controller.clearSubcategories();
   }
@@ -429,6 +454,20 @@ class _PlacesPanelState extends State<PlacesPanel> {
       return null;
     }
     return normalized;
+  }
+
+  void _setLocation(double latitude, double longitude) {
+    setState(() {
+      _selectedLatitude = latitude;
+      _selectedLongitude = longitude;
+    });
+  }
+
+  void _clearLocation() {
+    setState(() {
+      _selectedLatitude = null;
+      _selectedLongitude = null;
+    });
   }
 
   String _scoreLabel(PlaceSummary place) {

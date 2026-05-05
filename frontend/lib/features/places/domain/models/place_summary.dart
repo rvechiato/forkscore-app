@@ -10,6 +10,8 @@ class PlaceSummary {
     required this.neighborhood,
     required this.city,
     this.instagramUrl,
+    this.latitude,
+    this.longitude,
     required this.category,
     required this.subcategory,
     required this.createdBy,
@@ -21,8 +23,12 @@ class PlaceSummary {
   final String neighborhood;
   final String city;
   final String? instagramUrl;
+  final double? latitude;
+  final double? longitude;
   final PlaceCategory category;
   final PlaceSubcategory subcategory;
   final PlaceAuthor createdBy;
   final PlaceReviewSummaryBrief reviewSummary;
+
+  bool get hasLocation => latitude != null && longitude != null;
 }

@@ -11,6 +11,8 @@ class PlaceDetail {
     required this.neighborhood,
     required this.city,
     this.instagramUrl,
+    this.latitude,
+    this.longitude,
     required this.category,
     required this.subcategory,
     required this.createdBy,
@@ -23,7 +25,11 @@ class PlaceDetail {
   final String neighborhood;
   final String city;
   final String? instagramUrl;
+  final double? latitude;
+  final double? longitude;
   final PlaceCategory category;
   final PlaceSubcategory subcategory;
   final PlaceAuthor createdBy;
+
+  bool get hasLocation => latitude != null && longitude != null;
 }

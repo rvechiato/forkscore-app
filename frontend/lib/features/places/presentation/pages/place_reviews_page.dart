@@ -4,6 +4,7 @@ import '../../../../app/auth_scope.dart';
 import '../../../../app/navigation/app_routes.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/widgets/authenticated_page_scaffold.dart';
+import '../../../../shared/widgets/place_location_map.dart';
 import '../../../reviews/domain/models/recent_place_review.dart';
 import '../../../reviews/domain/models/recent_review_comment.dart';
 import '../../../reviews/domain/reviews_repository.dart';
@@ -287,6 +288,17 @@ class _PlaceHeaderCard extends StatelessWidget {
             label: 'Autoria',
             value: place.createdBy.name ?? 'Autor desconhecido',
           ),
+          if (place.hasLocation) ...[
+            const SizedBox(height: 8),
+            PlaceLocationMap(
+              key: const Key('place-reviews-location-map'),
+              latitude: place.latitude,
+              longitude: place.longitude,
+              interactive: false,
+              height: 190,
+              semanticLabel: 'Mapa somente leitura com a localizacao do lugar.',
+            ),
+          ],
         ],
       ),
     );

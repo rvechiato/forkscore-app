@@ -2,7 +2,7 @@ from datetime import datetime
 
 from urllib.parse import urlparse
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class CreatePlaceInput(BaseModel):
@@ -16,6 +16,8 @@ class CreatePlaceInput(BaseModel):
     category_id: str = Field(min_length=1, max_length=64)
     subcategory_id: str = Field(min_length=1, max_length=64)
     instagram_url: str | None = Field(default=None, max_length=255)
+    latitude: float | None = Field(default=None, ge=-90, le=90)
+    longitude: float | None = Field(default=None, ge=-180, le=180)
 
     @field_validator(
         "name",
@@ -50,6 +52,12 @@ class CreatePlaceInput(BaseModel):
             raise ValueError("Instagram URL must use instagram.com.")
 
         return normalized
+
+    @model_validator(mode="after")
+    def validate_coordinates_pair(self) -> "CreatePlaceInput":
+        if (self.latitude is None) != (self.longitude is None):
+            raise ValueError("Latitude and longitude must be provided together.")
+        return self
 
 
 class PlaceCategoryOutput(BaseModel):
@@ -93,6 +101,8 @@ class PlaceSummaryOutput(BaseModel):
     category_id: str
     subcategory_id: str
     instagram_url: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
     category: PlaceCategoryOutput
     subcategory: PlaceSubcategoryOutput
     created_by: PlaceAuthorOutput
@@ -111,6 +121,8 @@ class PlaceDetailOutput(BaseModel):
     category_id: str
     subcategory_id: str
     instagram_url: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
     category: PlaceCategoryOutput
     subcategory: PlaceSubcategoryOutput
     created_by: PlaceAuthorOutput

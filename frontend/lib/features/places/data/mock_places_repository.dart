@@ -48,6 +48,8 @@ class MockPlacesRepository implements PlacesRepository {
     String? instagramUrl,
     required String categoryId,
     required String subcategoryId,
+    double? latitude,
+    double? longitude,
   }) async {
     await _simulateLatency();
 
@@ -78,6 +80,8 @@ class MockPlacesRepository implements PlacesRepository {
       neighborhood: neighborhood.trim(),
       city: city.trim(),
       instagramUrl: _normalizeOptional(instagramUrl),
+      latitude: latitude,
+      longitude: longitude,
       category: category,
       subcategory: subcategory,
       createdBy: _authorFromToken(accessToken),
@@ -112,6 +116,8 @@ class MockPlacesRepository implements PlacesRepository {
             neighborhood: place.neighborhood,
             city: place.city,
             instagramUrl: place.instagramUrl,
+            latitude: place.latitude,
+            longitude: place.longitude,
             category: place.category,
             subcategory: place.subcategory,
             createdBy: place.createdBy,
@@ -272,6 +278,8 @@ class MockPlacesRepository implements PlacesRepository {
         neighborhood: 'Centro',
         city: 'Curitiba',
         instagramUrl: 'https://www.instagram.com/cafedocentro',
+        latitude: -25.4284,
+        longitude: -49.2733,
         category: _categoryById('cat_cafeteria'),
         subcategory: _subcategoryById('sub_cafeteria'),
         createdBy: const PlaceAuthor(id: 'user-1', name: 'Gastronomo'),

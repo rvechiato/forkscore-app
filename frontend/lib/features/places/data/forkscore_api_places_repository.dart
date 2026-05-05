@@ -3,6 +3,7 @@ import 'dart:convert';
 import '../../../shared/http/simple_http_client.dart';
 import '../domain/models/place_author.dart';
 import '../domain/models/place_category.dart';
+import '../domain/models/place_create_request.dart';
 import '../domain/models/place_detail.dart';
 import '../domain/models/place_review_summary_brief.dart';
 import '../domain/models/place_summary.dart';
@@ -91,20 +92,25 @@ class ForkScoreApiPlacesRepository implements PlacesRepository {
     String? instagramUrl,
     required String categoryId,
     required String subcategoryId,
+    double? latitude,
+    double? longitude,
   }) async {
+    final request = PlaceCreateRequest(
+      name: name,
+      street: street,
+      number: number,
+      neighborhood: neighborhood,
+      city: city,
+      instagramUrl: instagramUrl,
+      categoryId: categoryId,
+      subcategoryId: subcategoryId,
+      latitude: latitude,
+      longitude: longitude,
+    );
     final response = await _client.post(
       _resolve('/places'),
       headers: _authorizedHeaders(accessToken),
-      body: jsonEncode({
-        'name': name,
-        'street': street,
-        'number': number,
-        'neighborhood': neighborhood,
-        'city': city,
-        'instagram_url': instagramUrl,
-        'category_id': categoryId,
-        'subcategory_id': subcategoryId,
-      }),
+      body: jsonEncode(request.toJson()),
     );
     final body = _decodeMapBody(response);
     _ensureSuccess(response.statusCode, body);
@@ -142,6 +148,8 @@ class ForkScoreApiPlacesRepository implements PlacesRepository {
       neighborhood: payload['neighborhood'] as String,
       city: payload['city'] as String,
       instagramUrl: payload['instagram_url'] as String?,
+      latitude: _parseOptionalDouble(payload['latitude']),
+      longitude: _parseOptionalDouble(payload['longitude']),
       category: _parseCategory(payload['category'] as Map<String, dynamic>),
       subcategory: _parseSubcategory(
         payload['subcategory'] as Map<String, dynamic>,
@@ -162,6 +170,8 @@ class ForkScoreApiPlacesRepository implements PlacesRepository {
       neighborhood: payload['neighborhood'] as String,
       city: payload['city'] as String,
       instagramUrl: payload['instagram_url'] as String?,
+      latitude: _parseOptionalDouble(payload['latitude']),
+      longitude: _parseOptionalDouble(payload['longitude']),
       category: _parseCategory(payload['category'] as Map<String, dynamic>),
       subcategory: _parseSubcategory(
         payload['subcategory'] as Map<String, dynamic>,
@@ -202,6 +212,13 @@ class ForkScoreApiPlacesRepository implements PlacesRepository {
           ? null
           : (averageRating as num).toDouble(),
     );
+  }
+
+  double? _parseOptionalDouble(Object? value) {
+    if (value == null) {
+      return null;
+    }
+    return (value as num).toDouble();
   }
 
   void _ensureSuccess(int statusCode, Object body) {
