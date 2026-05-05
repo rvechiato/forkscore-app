@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: forkscore-postgres
+    environment:
+      POSTGRES_DB: forkscore
+      POSTGRES_USER: forkscore
+      POSTGRES_PASSWORD: forkscore
+    ports:
+      - "5432:5432"
+    volumes:
+      - forkscore-postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U forkscore -d forkscore"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  forkscore-postgres-data:

@@ -4,6 +4,7 @@ from functools import lru_cache
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from src.app.settings import Settings, get_settings
 from src.shared.infra.database.base import Base
@@ -13,6 +14,8 @@ def _engine_options(database_url: str) -> dict[str, object]:
     options: dict[str, object] = {}
     if database_url.startswith("sqlite"):
         options["connect_args"] = {"check_same_thread": False}
+        if database_url in {"sqlite://", "sqlite:///:memory:"}:
+            options["poolclass"] = StaticPool
     return options
 
 
@@ -36,7 +39,7 @@ def get_session_factory(database_url: str) -> sessionmaker[Session]:
 
 
 def init_database(settings: Settings) -> None:
-    """Create database tables for the current application."""
+    """Create database tables and seed reference data for the application."""
 
     # Import models before metadata creation so SQLAlchemy can register them.
     from src.modules.auth.infra.database import models as auth_models  # noqa: F401
